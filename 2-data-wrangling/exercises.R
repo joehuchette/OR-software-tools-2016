@@ -12,12 +12,37 @@ library(ggplot2)
 # Use Session -> Set Working Directory -> Choose Directory to navigate to 
 # the folder in which your files are stored. 
 
-trips <- read.csv('2013-05-14_neighborhoods.csv') %>% tbl_df
-areas <- read.csv('area_info.csv') %>% tbl_df
+trips = read.csv('2013-05-14_neighborhoods.csv') %>% tbl_df
+areas = read.csv('area_info.csv') %>% tbl_df
 
 # 0. BASIC PIPING -------------------------------------------------------------
 
+# 0.1 Create a logarithmic histogram of fare amounts in three different ways. 
+
+## First, use the 'nested function method', e.g. plot(table(x)). 
+## Second, use the 'multiple-assignment method', e.g. y = table(x); plot(y)
+## Finally, use piping, e.g. x %>% table %>% plot
+
+# In all three approaches, you will need the log(x,b) funcion, which takes
+# the entrywise logarithm base b of x, and the function cut(x,n), which cuts 
+# a numeric vector x into n bins.  
+
+# SOLUTION 1
+plot(table(cut(log(trips$fare_amount),500)))
+
+# SOLUTION 2
+x = log(trips$fare_amount)
+y = cut(x,500)
+z = table(y)
+plot(z)
+
+# SOLUTION 3
+trips$fare_amount %>% log %>% cut(500) %>% table %>% plot
+
 # 1. EXPLORING A DATA SET -----------------------------------------------------
+
+
+
 
 # 2. LINEAR REGRESSION --------------------------------------------------------
 # 3. JOINING AND AGGREGATION --------------------------------------------------
@@ -67,11 +92,11 @@ m <- trips %>%
 	filter(!is.na(dborough),!is.na(pborough)) %>%
 	spread(key = dborough, value = n, fill = 0)
 
-### Now visualize the results by running the code below: 
+## 3.2 VISUALIZATION ----------------------------
+# Now visualize the results by running the code below: 
 
 m <- m %>% select(-pborough) %>% data.matrix
 rownames(m) <- colnames(m)
 heatmap(m, symm = TRUE, scale = 'row')
-
 
 # JOINING MULTIPLE DATA SETS --------------------------------------------------
