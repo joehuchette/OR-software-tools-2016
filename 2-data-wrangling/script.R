@@ -1,48 +1,82 @@
-setwd("/Users/Alex/Documents/mitorc/2-iap2015/OR-software-tools-2016/2-data-wrangling/")
 
-taxidata = read.csv("2013-05-14_neighborhoods.csv",stringsAsFactors=F)
+# PREP --------------------------------------------------------------------
 
-str(taxidata)
+# setwd("/Users/Alex/Documents/mitorc/2-iap2015/OR-software-tools-2016/2-data-wrangling/")
 
+# Load key packages
 library(dplyr)
 library(ggplot2)
 
-ggplot(taxidata,aes(x=passenger_count)) + geom_histogram()
+# Read in the data
+trips = read.csv("2013-05-14_neighborhoods.csv",stringsAsFactors=F) %>% tbl_df
+areas = read.csv('area_info.csv', stringsAsFactors=F) %>% tbl_df
 
-taxidata %>% count(passenger_count)
+# Check what we have
+str(trips)
+str(areas)
 
-ggplot(taxidata,aes(x=trip_distance)) + geom_histogram(binwidth=0.5)
+# 0. CHAINING -------------------------------------------------------------
 
-taxidata %>% ggplot(aes(x=trip_distance,y=tip_amount)) + geom_point()
-taxidata %>% ggplot(aes(x=fare_amount,y=tip_amount)) + geom_point()
+# Chaining helps us keep our code and workspace clean. Let's work through some
+# quick examples.
 
-# For display purposes
-taxidata = tbl_df(taxidata)
+# EX 0.1 ------------------------------------------------------------------
+# For example, suppose we want to calculate the standard deviation of a 
+# numeric vector. First, here's a 'nested functions' approach to solving this 
+# problem: 
+
+sqrt(mean((trips$fare_amount - mean(trips$fare_amount))^2))
+
+# Next, here's a 'intermediate assignment' approach using intermediate vectors:
+
+m = mean(trips$fare_amount)
+devs = trips$fare_amount - m
+devs2 = devs^2
+var = mean(devs2)
+sqrt(var)
+
+# Finally, here's a chaining approach: it's a bit more to type, but it's easier
+# to read than the 'nested functions' approach and avoids intermediate assignments.
+
+(trips$fare_amount - mean(trips$fare_amount))^2 %>% mean() %>% sqrt()
+
+# EX. 0.2 -----------------------------------------------------------------
+# Suppose we want to compute a histogram for a numeric column. Let's work through 
+# the multiple-assignment approach together. In words, we want to:
+## Take the passenger_count column of trips
+## Then use the table() function to count the number of trips for each count
+## Then plot() the result
+
+# SOL. 0.2: -----
+plot(table(trips$passenger_count))
+
+# EX. 0.3 -----------------------------------------------------------------
+# Ok, now let's execute the same task using chaining: 
+
+# SOL. 0.3: -----
+trips$passenger_count %>% table() %>% plot()
+
+# EXERCISE 0.0 ------------------------------------------------------------
+# Go to EXERCISES 0.0 in the file exercises.R, where you'll expand on 
+# this last example. 
+
+
+
+# 1. EXPLORING AND SUMMARIZING DATA SET -----------------------------------
 
 ### EXAMPLE 1: Aggregate Statistics ###
 
-### Chaining
-
-# Calculating standard deviation - No nesting
-sqrt(mean((taxidata$fare_amount - mean(taxidata$fare_amount))^2))
-
-(taxidata$fare_amount - mean(taxidata$fare_amount))^2 %>% mean() %>% sqrt()
-
-
-# Histogram - no intermediate step
-taxidata$passenger_count %>% table() %>% plot()
-
-### Creating aggregate stats table
+### Aggregation
 
 # Create mean column
-taxidata %>%
+trips %>%
   group_by(passenger_count) %>%
   summarize(faremean = mean(fare_amount))
 # Introduce group_by and summarize on a slide
 
 
 # Add median column in same step
-taxidata %>%
+trips %>%
   group_by(passenger_count) %>%
   summarize(
     faremean = mean(fare_amount),
@@ -50,13 +84,13 @@ taxidata %>%
   )
 
 # Why is mean so much higher for passenger count 0?
-table(taxidata$passenger_count)
-taxidata %>% count(passenger_count)
+table(trips$passenger_count)
+trips %>% count(passenger_count)
 # Introduce count?
 
 # Notice only 3 trips had 0 passenger count
 # Let's just filter out trips with 0 passengers
-taxidata %>%
+trips %>%
   group_by(passenger_count) %>%
   summarize(
     faremean = mean(fare_amount),
@@ -66,7 +100,7 @@ taxidata %>%
 # Introduce filter?
 
 # Let's sort by faremean
-taxidata %>%
+trips %>%
   group_by(passenger_count) %>%
   summarize(
     faremean = mean(fare_amount),
@@ -76,7 +110,7 @@ taxidata %>%
   arrange(faremean)
 
 # Now what if I want descending order by faremean
-taxidata %>%
+trips %>%
   group_by(passenger_count) %>%
   summarize(
     faremean = mean(fare_amount),
@@ -95,29 +129,29 @@ taxidata %>%
 # Predict tip percentage based on passenger count and fare amount
 
 # First let's just take the columns we actually will need. This will be cleaner.
-taxidata %>%
+trips %>%
   select(passenger_count,fare_amount,tip_amount)
 # Introduce select
 
 # Now let's create a column for tip percent
 # We'll use the mutate verb
 # BaseR
-taxidata$tip_percent = taxidata$tip_amount / taxidata$fare_amount
+trips$tip_percent = trips$tip_amount / trips$fare_amount
 
 # Dplyr
-taxidata %>%
+trips %>%
   select(passenger_count,fare_amount,tip_amount) %>%
   mutate(tip_percent = tip_amount / fare_amount)
 
 # Let's see what the new column looks like
-taxidata %>%
+trips %>%
   select(passenger_count,fare_amount,tip_amount) %>%
   mutate(tip_percent = tip_amount / fare_amount) %>%
   summary()
 #Introduce mutate
 
 # Let's save that and remove tip_amount, which we don't need anymore
-linregdata = taxidata %>%
+linregdata = trips %>%
   select(passenger_count,fare_amount,tip_amount) %>%
   mutate(tip_percent = tip_amount / fare_amount) %>%
   select(-tip_amount)
@@ -133,11 +167,11 @@ summary(mod)
 library(tidyr)
 
 # Let's look at how many trips there were for each O-D pair
-taxidata %>% count(pdistrict,ddistrict)
+trips %>% count(pdistrict,ddistrict)
 # Introduce count function
 
 #Let's remove NA's
-taxidata %>%
+trips %>%
   count(pdistrict,ddistrict) %>%
   filter(
     !is.na(pdistrict),
@@ -146,7 +180,7 @@ taxidata %>%
 
 # Our data is long format, but we want columns for ddistrict rather than repeated rows.
 # Data in this format is not very efficient, but it is pretty easy to work with because there are only 3 columns, easy filtering, etc. For more reading on this topic...
-taxidata %>%
+trips %>%
   count(pdistrict,ddistrict) %>%
   filter(
     !is.na(pdistrict),
@@ -155,7 +189,7 @@ taxidata %>%
   spread(ddistrict,n)
 
 # We can tell tidyr to use something other than NA to fill when it doesn't have a value
-taxidata %>%
+trips %>%
   count(pdistrict,ddistrict) %>%
   filter(
     !is.na(pdistrict),
@@ -163,7 +197,7 @@ taxidata %>%
   ) %>%
   spread(ddistrict,n,fill=0)
 
-taxidata %>%
+trips %>%
   count(pdistrict,ddistrict) %>%
   filter(
     !is.na(pdistrict),
@@ -171,7 +205,7 @@ taxidata %>%
   ) %>%
   ggplot(aes(x=pdistrict,y=ddistrict)) + geom_point(aes(size=n,alpha=n))
 
-taxidata %>%
+trips %>%
   count(pdistrict,ddistrict) %>%
   filter(
     !is.na(pdistrict),
@@ -189,26 +223,26 @@ taxidata %>%
 rate_code_map = read.csv("rate_code_map.csv",stringsAsFactors = F)
 
 # Rename version
-taxidata %>%
+trips %>%
   select(passenger_count,rate_code) %>%
   rename(Code = rate_code)
 #Simpler version
-taxidata %>%
+trips %>%
   select(passenger_count,Code=rate_code)
 
 # Introduce select naming and rename
-taxidata %>%
+trips %>%
   select(passenger_count,Code=rate_code) %>%
   left_join(rate_code_map)
 
 # Now let's count by passenger_count and RateClass
-taxidata %>%
+trips %>%
   select(passenger_count,Code=rate_code) %>%
   left_join(rate_code_map) %>%
   count(passenger_count,RateClass)
 
 # Now let's look at a cross-table grid
-taxidata %>%
+trips %>%
   select(passenger_count,Code=rate_code) %>%
   left_join(rate_code_map) %>%
   count(passenger_count,RateClass) %>%
