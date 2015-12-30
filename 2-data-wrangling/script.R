@@ -21,24 +21,32 @@ str(areas)
 # quick examples.
 
 # EX 0.1 ------------------------------------------------------------------
-# For example, suppose we want to calculate the standard deviation of a 
-# numeric vector. First, here's a 'nested functions' approach to solving this 
-# problem: 
+# Show 'nested function', 'intermediate assignment', and chaining approaches
+# to computing the standard deviation of a numeric vector. 
 
+# nested function
+
+# intermediate assignment
+
+# chaining
+
+# SOL. 0.1 ----------------------------------------------------------------
+
+# nested function
 sqrt(mean((trips$fare_amount - mean(trips$fare_amount))^2))
 
-# Next, here's a 'intermediate assignment' approach using intermediate vectors:
-
+# intermediate assignment
 m = mean(trips$fare_amount)
 devs = trips$fare_amount - m
 devs2 = devs^2
 var = mean(devs2)
 sqrt(var)
 
-# Finally, here's a chaining approach: it's a bit more to type, but it's easier
-# to read than the 'nested functions' approach and avoids intermediate assignments.
-
+# chaining 
 (trips$fare_amount - mean(trips$fare_amount))^2 %>% mean() %>% sqrt()
+
+# chaining requires a bit more typing, but is more legible and easier on your 
+# computer's memory. 
 
 # EX. 0.2 -----------------------------------------------------------------
 # Suppose we want to compute a histogram for a numeric column. Let's work through 
@@ -47,7 +55,10 @@ sqrt(var)
 ## Then use the table() function to count the number of trips for each count
 ## Then plot() the result
 
-# SOL. 0.2: -----
+
+# SOL. 0.2 ----------------------------------------------------------------
+
+
 plot(table(trips$passenger_count))
 
 # EX. 0.3 -----------------------------------------------------------------
@@ -57,9 +68,6 @@ plot(table(trips$passenger_count))
 trips$passenger_count %>% table() %>% plot()
 
 # 1. EXPLORING AND SUMMARIZING DATA SET -----------------------------------
-
-# Needs to be in here: 
-# filter, select, groupby, summarise, count
 
 # We'll do some informal exploration of the relationship between passenger_count
 # and fare_amount. We'll do some more formal analysis in the next section. 
