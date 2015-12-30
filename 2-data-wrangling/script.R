@@ -56,76 +56,114 @@ plot(table(trips$passenger_count))
 # SOL. 0.3: -----
 trips$passenger_count %>% table() %>% plot()
 
-# EXERCISE 0.0 ------------------------------------------------------------
-# Go to EXERCISES 0.0 in the file exercises.R, where you'll expand on 
-# this last example. 
-
-
-
 # 1. EXPLORING AND SUMMARIZING DATA SET -----------------------------------
 
-### EXAMPLE 1: Aggregate Statistics ###
+# Needs to be in here: 
+# filter, select, groupby, summarise, count
 
-### Aggregation
+# We'll do some informal exploration of the relationship between passenger_count
+# and fare_amount. We'll do some more formal analysis in the next section. 
 
-# Create mean column
+# EX. 1.1 -----------------------------------------------------------------
+# Compute the mean of fare_amount. Then compute means of fare_amount and 
+# passenger_count simultaneously. What about medians? 
+
+# SOL. 1.1 ----------------------------------------------------------------
+
+# means
+trips %>%
+	summarise(fare_mean = mean(fare_amount),
+			  passenger_mean = mean(passenger_count))
+
+# medians
+trips %>%
+	summarise(fare_mean = median(fare_amount),
+			  passenger_mean = median(passenger_count))
+
+# EX. 1.2 -----------------------------------------------------------------
+# Compute means of fare_amount for each number of passengers. What's weird about 
+# the result? 
+
+# SOL. 1.2 ----------------------------------------------------------------
+
 trips %>%
   group_by(passenger_count) %>%
-  summarize(faremean = mean(fare_amount))
-# Introduce group_by and summarize on a slide
+  summarize(fare_mean = mean(fare_amount))
 
+# Weird: fare_mean is so much higher for passenger_count = 0
 
-# Add median column in same step
+# EX. 1.3 -----------------------------------------------------------------
+# Add a column to our table with the count of trips in each category.
+
+# SOL. 1.3 ----------------------------------------------------------------
+
 trips %>%
   group_by(passenger_count) %>%
-  summarize(
-    faremean = mean(fare_amount),
-    faremedian = median(fare_amount)
-  )
+	summarize(fare_mean = mean(fare_amount),
+			  n = n())
 
-# Why is mean so much higher for passenger count 0?
-table(trips$passenger_count)
+# Could get just the counts faster: 
 trips %>% count(passenger_count)
-# Introduce count?
 
-# Notice only 3 trips had 0 passenger count
-# Let's just filter out trips with 0 passengers
+# EX. 1.4 -----------------------------------------------------------------
+# Reproduce the summary table from the last example, but with passenger_count=0
+# trips filtered out. 
+
+# SOL. 1.4 ----------------------------------------------------------------
+
 trips %>%
-  group_by(passenger_count) %>%
-  summarize(
-    faremean = mean(fare_amount),
-    faremedian = median(fare_amount)
-  ) %>%
-  filter(passenger_count != 0)
-# Introduce filter?
+	filter(passenger_count != 0) %>%
+	group_by(passenger_count) %>%
+	summarize(faremean = mean(fare_amount),
+			  n = n())
+  
 
-# Let's sort by faremean
-trips %>%
-  group_by(passenger_count) %>%
-  summarize(
-    faremean = mean(fare_amount),
-    faremedian = median(fare_amount)
-  ) %>%
-  filter(passenger_count != 0) %>%
-  arrange(faremean)
+# EX. 1.5 -----------------------------------------------------------------
+# What are the most common number of persons per ride? What number of passengers
+# tend to give the largest fares? Let's get some practice sorting. 
 
-# Now what if I want descending order by faremean
-trips %>%
-  group_by(passenger_count) %>%
-  summarize(
-    faremean = mean(fare_amount),
-    faremedian = median(fare_amount)
-  ) %>%
-  filter(passenger_count != 0) %>%
-  arrange(desc(faremean))
+# SOL. 1.5 ----------------------------------------------------------------
 
-## ADD ASSIGNMENT for Section 1
-# Create log histogram of fare amount
-# Introduce cut function
+# Let's sort by fare_mean
 
-# Maybe have them make a function that calculates a statistical summary
+tab = trips %>%
+	group_by(passenger_count) %>%
+	summarize(fare_mean = mean(fare_amount),
+			  n = n()) %>%
+	filter(passenger_count != 0)
 
-### EXAMPLE 2: Linear Regression ###
+# Ascending order by fare_mean
+tab %>% arrange(fare_mean)
+# Descending order by fare_mean
+tab %>% arrange(desc(fare_mean))
+
+
+# Let's add a column for tip_mean and sort by that instead.
+tab = trips %>%
+	group_by(passenger_count) %>%
+	summarize(fare_mean = mean(fare_amount),
+			  tip_mean = mean(tip_amount),
+			  n = n()) %>%
+	filter(passenger_count != 0) 
+
+# Ascending order by tip_mean
+tab %>% arrange(tip_mean)
+# Descending order by tip_mean
+tab %>% arrange(desc(tip_mean))
+
+# Note: sorting is intrinsically unstable, but you can you can 'save state' by 
+# adding a column for ranks if you'll be using the order in your analysis.   
+
+tab %>% mutate(fare_rank = rank(desc(fare_mean)),
+			   tip_rank = rank(desc(tip_mean)),
+			   most_common = rank(desc(n))) %>%
+	select(passenger_count, fare_rank, tip_rank, most_common)
+
+# So, lone passengers in this data set paid the lowest fares but the highest tips.
+# We haven't done any inferential stats here, so this could easily be noise. 
+
+# 2. PREPPING DATA FOR ANALYSIS -------------------------------------------
+
 # Predict tip percentage based on passenger count and fare amount
 
 # First let's just take the columns we actually will need. This will be cleaner.
@@ -159,97 +197,80 @@ linregdata = trips %>%
 mod = lm(tip_percent ~ ., data=linregdata)
 summary(mod)
 
-# Add assignment
+# 3. ORIGIN-DESTINATION MATRIX --------------------------------------------
+# In this section, we'll create an origin-destination (OD) matrix. An OD matrix 
+# is a matrix where the ij-th entry counts the number of trips from origin i to
+# destination j. 
+# Here, we'll use functions from tidyr, a great companion to dplyr for reshaping
+# data sets. In the exercises, you'll explore a different approach using 
+# dplyr functions only. 
 
-### EXAMPLE 3: O-D Matrix ###
-# Let's create a matrix where rows are origins, columns are destinations, and each cell contains the number of trips for that O-D pair
+# EX. 3.1 -----------------------------------------------------------------
+# Create an OD matrix on the district-number level; i.e. the rows are 
+# pdistrict (p for pickup) and the columns are ddistrct (d for dropoff).
+
+# SOL. 3.1 ----------------------------------------------------------------
 
 library(tidyr)
 
 # Let's look at how many trips there were for each O-D pair
-trips %>% count(pdistrict,ddistrict)
+counts = trips %>% count(pdistrict,ddistrict)
 # Introduce count function
 
-#Let's remove NA's
-trips %>%
-  count(pdistrict,ddistrict) %>%
-  filter(
-    !is.na(pdistrict),
-    !is.na(ddistrict)
-  )
+counts = counts %>% 
+	filter(!is.na(pdistrict),
+		   !is.na(ddistrict))
 
-# Our data is long format, but we want columns for ddistrict rather than repeated rows.
-# Data in this format is not very efficient, but it is pretty easy to work with because there are only 3 columns, easy filtering, etc. For more reading on this topic...
-trips %>%
-  count(pdistrict,ddistrict) %>%
-  filter(
-    !is.na(pdistrict),
-    !is.na(ddistrict)
-  ) %>%
-  spread(ddistrict,n)
+# Our data is in 'long' or 'tidy' format, where each possible value of pdistrict
+# and ddistrict has its own row. This is inefficient, but great in many 
+# applications because there are few columns, filtering is easy, etc. Data in 
+# this format is not very efficient, but it is pretty easy to work with because 
+# there are only 3 columns, easy filtering, etc. However, we want 'wide' format,
+# in which each value of ddistrict will have its own column. 
 
-# We can tell tidyr to use something other than NA to fill when it doesn't have a value
-trips %>%
-  count(pdistrict,ddistrict) %>%
-  filter(
-    !is.na(pdistrict),
-    !is.na(ddistrict)
-  ) %>%
-  spread(ddistrict,n,fill=0)
+counts %>% spread(ddistrict, n)
 
-trips %>%
-  count(pdistrict,ddistrict) %>%
-  filter(
-    !is.na(pdistrict),
-    !is.na(ddistrict)
-  ) %>%
-  ggplot(aes(x=pdistrict,y=ddistrict)) + geom_point(aes(size=n,alpha=n))
+# Pretty good, but we should use 0s instead of NAs for pairs with no trips. 
 
-trips %>%
-  count(pdistrict,ddistrict) %>%
-  filter(
-    !is.na(pdistrict),
-    !is.na(ddistrict)
-  ) %>%
- ungroup %>%
-  arrange(desc(n))
+counts %>% spread(ddistrict, n, fill=0)  
 
-### EXAMPLE 3: Rate codes vs. passenger counts
+# This is still pretty hard to read. We can visualize it: 
+counts %>% ggplot(aes(x=pdistrict,y=ddistrict)) + 
+	geom_point(aes(size=n,alpha=n))
+# but it's still unclear what to make of this. 
 
-# Rate code mapping
-# rate_code_map = data.frame(RateClass = c("Standard rate", "JFK", "Newark", "Nassau or Westchester", "Negotiated fare", "Group ride"), Code = 1:6)
-# 
-# write.csv(rate_code_map,"rate_code_map.csv",row.names = F)
-rate_code_map = read.csv("rate_code_map.csv",stringsAsFactors = F)
+# EX. 3.2 -----------------------------------------------------------------
+# A cleaner approach is to bin by a more interpretable set of origins and 
+# destinations. Each district number corresponds to a borough. We'd like to 
+# look up the borough for each district number and make an OD matrix by 
+# borough instead. To get the borough, we'll need to use joins. 
 
-# Rename version
-trips %>%
-  select(passenger_count,rate_code) %>%
-  rename(Code = rate_code)
-#Simpler version
-trips %>%
-  select(passenger_count,Code=rate_code)
+# SOL. 3.2 ----------------------------------------------------------------
+# This one needs some talking-through. Our strategy is to: 
+## Grab only the columns we need
+## Add a unique id for each trip using the row_number() function
+## Convert to long format using gather, a tidyr function
+## Join using to the areas data set to get the borough for each district
+## Grab only the columns we need and 'spread' into matrix format
+## Rename and clean up
 
-# Introduce select naming and rename
-trips %>%
-  select(passenger_count,Code=rate_code) %>%
-  left_join(rate_code_map)
+m <- trips %>% 
+	select(pdistrict, ddistrict) %>%
+	mutate(trip_id = row_number()) %>%
+	gather(p_or_d, district, -trip_id) %>%
+	left_join(areas, by = c('district' = 'id')) %>%
+	select(trip_id, p_or_d, borough) %>%
+	spread(key = p_or_d, value = borough) %>%
+	rename(pborough = pdistrict, dborough = ddistrict) %>%
+	filter(!is.na(dborough), !is.na(pborough)) %>%
+	count(pborough, dborough) %>%
+	spread(key = dborough, value = n, fill = 0) # convert to `matrix shaped' df
 
-# Now let's count by passenger_count and RateClass
-trips %>%
-  select(passenger_count,Code=rate_code) %>%
-  left_join(rate_code_map) %>%
-  count(passenger_count,RateClass)
+m
 
-# Now let's look at a cross-table grid
-trips %>%
-  select(passenger_count,Code=rate_code) %>%
-  left_join(rate_code_map) %>%
-  count(passenger_count,RateClass) %>%
-  spread(passenger_count,n,fill=0)
-  
-# Sometimes you want to save an intermediate df after joining if the join takes a long time to run
+# This is also a bit easier to visualize: 
 
-
-## ASSIGNMENT: Map neighborhood names and creat O-D Matrix
+m <- m %>% select(-pborough) %>% data.matrix
+rownames(m) <- colnames(m)
+heatmap(m, symm = TRUE, scale = 'row')
 
