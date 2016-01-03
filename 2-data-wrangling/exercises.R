@@ -17,45 +17,26 @@ library(ggplot2)
 trips = read.csv('2013-05-14_neighborhoods.csv') %>% tbl_df
 areas = read.csv('area_info.csv') %>% tbl_df
 
-# 0. CHAINING -------------------------------------------------------------
-# In this exercise, we'll get some basic practice with chaining by creating 
-# a one-line histogram of fare amounts. 
+# 1. EXPLORING A DATA SET -----------------------------------------------------
 
-# EXERCISE 0.1 ------------------------------------------------------------
+# EXERCISE 1.0 ------------------------------------------------------------
+# The line of code below creates a logarithmic histogram of the fare paid 
+# per trip. Run the code to test it out. Now, Rewrite this code using pipes. 
+# You shouldn't need any nested functions or objects stored in intermediate memory. 
 
-# Create a logarithmic histogram of fare amounts in three different ways. 
-
-## First, use the 'nested function method', e.g. plot(table(x)). 
-## Second, use the 'multiple-assignment method', e.g. y = table(x); plot(y)
-## Finally, use chaining, e.g. x %>% table %>% plot
-
-# In all three approaches, you will need the log(x,b) function, which takes
-# the entrywise logarithm base b of x, and the function cut(x,n), which cuts 
-# a numeric vector x into n bins. For this exercise, use n = 200 bins. 
-
-# You should observe a relatively smooth distribution with a strange spike at a 
-# specific value. We'll come back to that. 
-
-# SOLUTION 0.1 -----------------------------------------------------------
-
-# SOLUTION 1
 plot(table(cut(log(trips$fare_amount),200)))
 
-# SOLUTION 2
-x = log(trips$fare_amount)
-y = cut(x,200)
-z = table(y)
-plot(z)
+# Run both versions to make sure you get the same result. 
 
-# SOLUTION 3
+# SOLUTION 1.0 ------------------------------------------------------------
+
 trips$fare_amount %>% log %>% cut(200) %>% table %>% plot
 
-# 1. EXPLORING A DATA SET -----------------------------------------------------
-# Remember that funny spike in the graph from EXERCISE 0.1? In this exercise, 
-# we'll figure out what that spike represents and how to isolate it in the data.  
-
 # EXERCISE 1.1 ------------------------------------------------------------
-# Determine the value at which the spike occurs. One approach would be to use 
+# Huh. We got a relatively smooth distribution, but check out that big spike
+# in the tail. In the remaining exercises, we'll use dplyr functions to 
+# figure out exactly where that spike occurs and why it might be there. First,
+# determine the value at which the spike occurs. One approach would be to use 
 # your code from EXERCISE 0.1, removing the log and plot calls, and inspecting 
 # the output for the location of the spike. 
 

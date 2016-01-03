@@ -163,7 +163,7 @@ trips %>%
 
 # What if don't want to include these weird trips in our summary table?
 
-# We learned one way to do this on Tuesday using the subset() function. dplyr provides a similar funciton called filter().
+# We learned one way to do this on Tuesday using the subset() function. dplyr provides a similar function called filter().
 # Let's explore these functions
 
 ###-------------
