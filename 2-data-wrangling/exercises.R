@@ -12,7 +12,7 @@ library(tidyr)
 library(ggplot2)
 
 # Use Session -> Set Working Directory -> Choose Directory to navigate to 
-# the folder in which your data sets are stored. If the two commands below execute successfully, you'll now you've done it right.  
+# the folder in which your data sets are stored. If the two commands below execute successfully, you'll know you've done it right.  
 
 trips = read.csv('2013-05-14_neighborhoods.csv') %>% tbl_df
 areas = read.csv('area_info.csv') %>% tbl_df
