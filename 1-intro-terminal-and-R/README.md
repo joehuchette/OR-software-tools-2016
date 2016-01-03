@@ -4,26 +4,26 @@ Course materials for "Software Tools for OR", an MIT IAP 2016 course covering es
 
 Before the first class, please complete the following tasks. 
 
-Task 1: Make a Github Account
+## Task 1: Make a Github Account
 
 * We will be using Github to distribute code. Please go to www.github.com and make a free account. 
 * Post on Stellar a snapshot of the "Your Profile" page (found by clicking in the top right corner of the webpage).
 
-Task 2: Download RStudio
+## Task 2: Download RStudio
 
-* We will be learning the R programming language. The classes will be using a program called RStudio to write and run R code. Please go to www.rstudio.comand download RStudio desktop. It should be free. 
-* After going through the installation steps, verify it works correctly by typing 1+2 into the the bottom of the screen, and click Enter. 
+* We will be learning the R programming language. The classes will be using a program called RStudio to write and run R code. Please go to www.rstudio.com and download RStudio desktop. It should be free. 
+* After going through the installation steps, verify it works correctly by typing 1+2 into the the bottom of the screen in the Console, and click Enter. 
 * Post in Stellar a snapshot of the output of 1+2.
 
 
-Task 3 (Windows Users Only): Download Putty
+## Task 3 (Windows Users Only): Download Putty
 
 * We will be learning how to interact with computers through a "terminal". Windows users should navigate to http://www.chiark.greenend.org.uk/~sgtatham/putty/download.html, and download the "putty.exe" program found on that page
 * Under "Host Name", type athena.dialup.mit.edu, and click "Open"
 * When prompted, type in your MIT id username and password.
 * Post a screenshot of the text that says "Welcome to athena.dialup.mit.edu" into stellar.
 
-Task 4 (Windows Users Only): Download win-sshfs
+## Task 4 (Windows Users Only): Download win-sshfs
 
 * Windows users will be utilizing the MIT athena clusters for some of the class material. win-sshfs lets Windows users access files on the MIT athena clusters from their own computers. To download, go to https://code.google.com/p/win-sshfs/downloads/list, and download the "win-sshfs-0.0.1.5-setup.exe" file. Go through the installation steps. 
 * After going through the installation steps, verify that you can "mount the athena as a local drive". To do this, click the "+ Add" button. 
