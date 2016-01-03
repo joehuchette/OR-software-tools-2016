@@ -25,7 +25,7 @@ Task 3 (Windows Users Only): Download Putty
 
 Task 4 (Windows Users Only): Download win-sshfs
 
-* Windows users will be utilizing the MIT athena clusters for some of the class material. win-sshfs let's Windows users access files on the MIT athena clusters from their own computers. To download, go to https://code.google.com/p/win-sshfs/downloads/list, and download the "win-sshfs-0.0.1.5-setup.exe" file. Go through the installation steps. 
+* Windows users will be utilizing the MIT athena clusters for some of the class material. win-sshfs lets Windows users access files on the MIT athena clusters from their own computers. To download, go to https://code.google.com/p/win-sshfs/downloads/list, and download the "win-sshfs-0.0.1.5-setup.exe" file. Go through the installation steps. 
 * After going through the installation steps, verify that you can "mount the athena as a local drive". To do this, click the "+ Add" button. 
 ** Next to "Drive Name: ", type: <your mit id>@'athena.dialup.mit.edu'
    where <your mit id> is replaced by your MIT log-in id. 
