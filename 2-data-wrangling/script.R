@@ -269,19 +269,46 @@ trips_summary %>%
 ### 2. PREPPING DATA FOR ANALYSIS ###
 ### ----------------------------- ###
 
-# Predict tip percentage based on passenger count and fare amount
+# ______
 
-# First let's just take the columns we actually will need. This will be cleaner.
+# But first let's learn how we can derive new columns/covariates.
+
+# Let's say we want to build a linear regression model to see if we can predict tip percentage based on passenger count and fare amount
+
+# Right now we have 21 columns. We only need two of them (passenger_count and fare_amount). We also need to create a tip percentage column.
+
+# Since we only need a few of our existing columns, let's just work with those ones - the full dataset is a bit unwieldy.
+
+# We can use the select() function.
+
+# ______
+
+# Ok, let's select just the passenger count, fare amount, and also tip amount, which we'll need to calculate the tip percentage.
+
 trips %>%
   select(passenger_count,fare_amount,tip_amount)
-# Introduce select
 
-# Now let's create a column for tip percent
-# We'll use the mutate verb
-# BaseR
+# Now we can see all three columns we are dealing with.
+
+# Ok, we are almost ready to supply this data frame to lm().
+# But we're missing our dependent variable!
+
+# We know we want a new column that calculates tip percentage by dividing tip amount by fare amount.
+
+# We could do this using baseR
 trips$tip_percent = trips$tip_amount / trips$fare_amount
 
-# Dplyr
+# But dplyr provides the mutate() verb to create new columns.
+# mutate() has some advantages over the baseR approach.
+
+# Before we explore those advantages, let's use select to remove that tip_percent column we just created.
+
+trips = trips %>%
+  select(-tip_percent)
+
+# ______
+
+# Let's use dplyr to create a new tip_percent column.
 trips %>%
   select(passenger_count,fare_amount,tip_amount) %>%
   mutate(tip_percent = tip_amount / fare_amount)
@@ -291,14 +318,16 @@ trips %>%
   select(passenger_count,fare_amount,tip_amount) %>%
   mutate(tip_percent = tip_amount / fare_amount) %>%
   summary()
-#Introduce mutate
 
-# Let's save that and remove tip_amount, which we don't need anymore
+# Ok, there's a bit of a weird outlier, but everything else looks good.
+
+# Let's save our linear regression data and remove tip_amount, which we don't need anymore.
 linregdata = trips %>%
   select(passenger_count,fare_amount,tip_amount) %>%
   mutate(tip_percent = tip_amount / fare_amount) %>%
   select(-tip_amount)
 
+# Now we'll run the linear regression and see how it looks.
 mod = lm(tip_percent ~ ., data=linregdata)
 summary(mod)
 
