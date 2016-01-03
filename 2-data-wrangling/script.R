@@ -1,190 +1,314 @@
 
-# PREP --------------------------------------------------------------------
+### LOADING THE DATA ###
 
-# setwd("/Users/Alex/Documents/mitorc/2-iap2015/OR-software-tools-2016/2-data-wrangling/")
+# Let's read in the dataset describing NYC taxi trips on May 14, 2013. 
+# Don't forget to start by navigating to the directory where you've saved the CSV file.
+# We'll set stringsAsFactors to FALSE just to make sure nothing gets converted to a factor variable that we don't want.
+trips = read.csv("2013-05-14_neighborhoods.csv",stringsAsFactors=F) 
+# This might take a few seconds since it's a fairly large file.
 
-# Load key packages
-library(dplyr)
-library(ggplot2)
-
-# Read in the data
-trips = read.csv("2013-05-14_neighborhoods.csv",stringsAsFactors=F) %>% tbl_df
-areas = read.csv('area_info.csv', stringsAsFactors=F) %>% tbl_df
-
-# Check what we have
+# As usual, the first thing we want to do any time we load a new dataset is look at what we just loaded.
 str(trips)
-str(areas)
+# We have 490,347 observations of 21 variables.
 
-# 0. CHAINING -------------------------------------------------------------
 
-# Chaining helps us keep our code and workspace clean. Let's work through some
-# quick examples.
+### 0. CHAINING AND OTHER PRELIMINARIES ###
+### ___________________________________ ###
 
-# EX 0.1 ------------------------------------------------------------------
-# Show 'nested function', 'intermediate assignment', and chaining approaches
-# to computing the standard deviation of a numeric vector. 
+# Before we get to wrangling our data, let's start by learning a few tricks built in to the dplyr package that will make all of our data wrangling tasks easier.
 
-# nested function
+# First we'll need to load the dplyr package
+# If you haven't already installed the dplyr package, you should do that first
+install.packages("dplyr")
+# Then load the package
+library(dplyr)
 
-# intermediate assignment
+# The first trick that will make our lives a bit easier is to convert our data frame to a special kind of data frame called a "tbl_df"
+trips = tbl_df(trips)
 
-# chaining
+# tbl_df's operate in exactly the same way as regular data frames. The advantage is that they display in the console in a more compact format so you can safely glimpse the data frame without printing all 490,000 rows.
 
-# SOL. 0.1 ----------------------------------------------------------------
+# The second trick that we'll use throughout the rest of today's session is chaining.
 
-# nested function
+# Chaining helps us keep our code and workspace clean. Let's learn how it works.
+
+###-------------
+
+# Let's look at an example of how chaining can make our code more legible.
+
+# Let's say we want to calculate the standard deviation of the taxi fare amount in our data.
+
+# We know how to calculate the standard deviation using baseR. It's just the square root of the average squared difference from the mean.
+# (Let's pretend for now that R doesn't provide the sd() function for this very purpose)
 sqrt(mean((trips$fare_amount - mean(trips$fare_amount))^2))
 
-# intermediate assignment
-m = mean(trips$fare_amount)
-devs = trips$fare_amount - m
-devs2 = devs^2
-var = mean(devs2)
-sqrt(var)
+# But that's a bit of a mess, with lots of open and closed parentheses to keep track of.
 
-# chaining 
+# We could use chaining to make this code more legible and write-able.
+# We'll start with the squared differences from the mean.
+(trips$fare_amount - mean(trips$fare_amount))^2 
+# Then we'll take the mean of that expression
+(trips$fare_amount - mean(trips$fare_amount))^2 %>% mean()
+# Finally we'll take that entire expression and take the square root of it.
 (trips$fare_amount - mean(trips$fare_amount))^2 %>% mean() %>% sqrt()
 
-# chaining requires a bit more typing, but is more legible and easier on your 
-# computer's memory. 
+# Notice that we didn't store any of the intermediate expressions. This is another advantage of chaining.
 
-# EX. 0.2 -----------------------------------------------------------------
-# Suppose we want to compute a histogram for a numeric column. Let's work through 
-# the multiple-assignment approach together. In words, we want to:
-## Take the passenger_count column of trips
-## Then use the table() function to count the number of trips for each count
-## Then plot() the result
+###-------------
 
-
-# SOL. 0.2 ----------------------------------------------------------------
-
-
-plot(table(trips$passenger_count))
-
-# EX. 0.3 -----------------------------------------------------------------
-# Ok, now let's execute the same task using chaining: 
-
-# SOL. 0.3: -----
+# Suppose we want to compute a histogram of the number of passengers on each trip. 
+# In words, we want to:
+## Take the passenger_count column of trips.
+trips$passenger_count
+## Then use the table() function to count the number of trips for each count.
+trips$passenger_count %>% table()
+## Then plot() the result.
 trips$passenger_count %>% table() %>% plot()
 
-# 1. EXPLORING AND SUMMARIZING DATA SET -----------------------------------
+# Chaining makes it easy to complete these steps in a legible way without storing intermediate objects.
 
-# We'll do some informal exploration of the relationship between passenger_count
-# and fare_amount. We'll do some more formal analysis in the next section. 
+# Furthermore, if we first looked at the table and then decided we want to plot it, we can just use chaining to tack on the plot() function, rather than having to add it "around" our original expression.
+plot(table(trips$passenger_count))
 
-# EX. 1.1 -----------------------------------------------------------------
-# Compute the mean of fare_amount. Then compute means of fare_amount and 
-# passenger_count simultaneously. What about medians? 
 
-# SOL. 1.1 ----------------------------------------------------------------
+# Chaining requires a bit more typing, but is more legible and easier on your computer's memory than storing intermediate objects. 
 
-# means
-trips %>%
-	summarise(fare_mean = mean(fare_amount),
-			  passenger_mean = mean(passenger_count))
+# OK, now let's wrange some data.
 
-# medians
-trips %>%
-	summarise(fare_mean = median(fare_amount),
-			  passenger_mean = median(passenger_count))
 
-# EX. 1.2 -----------------------------------------------------------------
-# Compute means of fare_amount for each number of passengers. What's weird about 
-# the result? 
+### 1. EXPLORING AND SUMMARIZING DATA SET ###
+### _____________________________________ ###
 
-# SOL. 1.2 ----------------------------------------------------------------
+# The first thing we typically want to do with any dataset is data exploration.
+# We saw on Tuesday how the summary() function can provide some useful summary statistics for any data frame.
+summary(trips)
 
+# That's pretty helpful. But what if we want to compute aggregate statistics at a more granular level.
+
+# How can we answer the question, "What are the mean and median fare amounts by number of passengers?"
+
+# To answer that question, we'll need to learn our first set of dplyr verbs: group_by and summarize.
+
+###-------------
+
+# Ok, now we're ready to go back and answer our question: what is the mean and median fare by number of passengers.
+# First, we can find the mean.
+# We take trips, group it by passenger_count, and then summarize the mean fare_amount within each group.
 trips %>%
   group_by(passenger_count) %>%
   summarize(fare_mean = mean(fare_amount))
 
-# Weird: fare_mean is so much higher for passenger_count = 0
+# Note that this chained set of commands creates a new data frame. We could choose to assign this object to a name.
+mean_fare_by_passenger_count = trips %>%
+  group_by(passenger_count) %>%
+  summarize(fare_mean = mean(fare_amount))
 
-# EX. 1.3 -----------------------------------------------------------------
-# Add a column to our table with the count of trips in each category.
+mean_fare_by_passenger_count
 
-# SOL. 1.3 ----------------------------------------------------------------
+# When doing data exploration, we may choose not to store the object. It may be sufficient to print it to the console.
+
+# Just out of curiosity, what happens if we use group_by without summarize?
+trips %>%
+  group_by(passenger_count)
+# Interesting, it looks the same as trips, but it is a grouped data frame.
+# We could save this as its own object.
+grouped_trips = trips %>%
+  group_by(passenger_count)
+# Then if we apply summarize to the new object, and it returns aggregate statistics for each group.
+grouped_trips %>%
+  summarize(fare_mean = mean(fare_amount))
+
+# Another question: What if we use summarize without group_by?
+trips %>%
+  summarize(fare_mean = mean(fare_amount))
+# Cool. It just yields an overall aggregate statistic on the un-grouped data frame.
+
+# Something interesting just happened: When we apply summarize to trips, it yields the overall mean. But when we apply the same summarize statement to grouped_trips, it yields grouped means.
+# What if we want to get the overall fare mean from grouped_trips? We can use ungroup().
+grouped_trips %>%
+  ungroup()
+# Ungroup removes all groups. Now we can calculate the overall mean with summarize.
+grouped_trips %>%
+  ungroup() %>%
+  summarize(fare_mean = mean(fare_amount))
+
+# Ok, back to the task at hand:
+# So far we've only calculated mean, but we also wanted median.
+# We can just add another argument within summarize, separated by commas, to create another column.
+# I like to write each new column on a separate line of code.
+trips %>%
+  group_by(passenger_count) %>%
+  summarize(
+    fare_mean = mean(fare_amount),
+    fare_median = median(fare_amount)
+  )
+
+# Notice anything weird about the mean and median?
+# It seems a lot higher for trips with 0 passengers.
+# But what is a trip with 0 passengers?
+
+# Let's add a column "n" to our data frame showing how many trips are in dataset for each passenger count.
+
+# We can use the n() function which is a helper verb for summarize that reports the "n" of each group.
 
 trips %>%
   group_by(passenger_count) %>%
-	summarize(fare_mean = mean(fare_amount),
-			  n = n())
+  summarize(
+    fare_mean = mean(fare_amount),
+    fare_median = median(fare_amount),
+    n = n()
+  )
 
-# Could get just the counts faster: 
-trips %>% count(passenger_count)
+# Ok, that explains it. There are only 3 trips with 0 passengers. Maybe they were coding errors.
 
-# EX. 1.4 -----------------------------------------------------------------
-# Reproduce the summary table from the last example, but with passenger_count=0
-# trips filtered out. 
+# What if don't want to include these weird trips in our summary table?
 
-# SOL. 1.4 ----------------------------------------------------------------
+# We learned one way to do this on Tuesday using the subset() function. dplyr provides a similar funciton called filter().
+# Let's explore these functions
 
+###-------------
+
+# Ok, let's filter trips before computing our summary stats.
+# We'll include only trips where passenger_count is not zero.
 trips %>%
-	filter(passenger_count != 0) %>%
-	group_by(passenger_count) %>%
-	summarize(faremean = mean(fare_amount),
-			  n = n())
-  
-
-# EX. 1.5 -----------------------------------------------------------------
-# What are the most common number of persons per ride? What number of passengers
-# tend to give the largest fares? Let's get some practice sorting. 
-
-# SOL. 1.5 ----------------------------------------------------------------
-
-# Let's sort by fare_mean
-
-tab = trips %>%
-	group_by(passenger_count) %>%
-	summarize(fare_mean = mean(fare_amount),
-			  n = n()) %>%
 	filter(passenger_count != 0)
 
-# Ascending order by fare_mean
-tab %>% arrange(fare_mean)
-# Descending order by fare_mean
-tab %>% arrange(desc(fare_mean))
+# Good - our new data frame has 3 fewer rows.
+# Let's double-check it did what we wanted.
+summary(trips$passenger_count)
+
+# Now let's calculate our summary table for this subset of the data. We'll just tack on the same commands we used before.
+trips %>%
+  filter(passenger_count != 0) %>%
+  group_by(passenger_count) %>%
+  summarize(
+    fare_mean = mean(fare_amount),
+    fare_median = median(fare_amount),
+    n = n()
+  )
+
+# In this case, because we are only filtering based on one condition, we could have also used subset.
+trips %>%
+  subset(passenger_count != 0) %>%
+  group_by(passenger_count) %>%
+  summarize(
+    fare_mean = mean(fare_amount),
+    fare_median = median(fare_amount),
+    n = n()
+  )
+
+# Also, we chose to filter out the 0's before we calculated our summary stats.
+# But we could have calculated summary stats and then filtered, with the same results (Warning: may not always be the case)
+# Notice how easy it is to slide the filter statement "down the chain"
+trips %>%
+  group_by(passenger_count) %>%
+  summarize(
+    fare_mean = mean(fare_amount),
+    fare_median = median(fare_amount),
+    n = n()
+  ) %>%
+  filter(passenger_count != 0)
 
 
-# Let's add a column for tip_mean and sort by that instead.
-tab = trips %>%
-	group_by(passenger_count) %>%
-	summarize(fare_mean = mean(fare_amount),
-			  tip_mean = mean(tip_amount),
-			  n = n()) %>%
-	filter(passenger_count != 0) 
+# Now that we've got some summary stats, we might have some other questions as we continue our data exploratin.
+# What number of passengers tend to give the largest fares?
+# To answer this, we need to learn how to sort our data frame.
+# To sort, we use the arrange() verb from dplyr.
 
-# Ascending order by tip_mean
-tab %>% arrange(tip_mean)
-# Descending order by tip_mean
-tab %>% arrange(desc(tip_mean))
+###-------------
 
-# Note: sorting is intrinsically unstable, but you can you can 'save state' by 
-# adding a column for ranks if you'll be using the order in your analysis.   
 
-tab %>% mutate(fare_rank = rank(desc(fare_mean)),
-			   tip_rank = rank(desc(tip_mean)),
-			   most_common = rank(desc(n))) %>%
-	select(passenger_count, fare_rank, tip_rank, most_common)
+# Let's sort our summary table by fare_mean
+# We'll just add an arrange clause at the end of the chain.
 
-# So, lone passengers in this data set paid the lowest fares but the highest tips.
-# We haven't done any inferential stats here, so this could easily be noise. 
+trips %>%
+  filter(passenger_count != 0) %>%
+  group_by(passenger_count) %>%
+  summarize(
+    fare_mean = mean(fare_amount),
+    fare_median = median(fare_amount),
+    n = n()
+  ) %>%
+  arrange(fare_mean)
 
-# 2. PREPPING DATA FOR ANALYSIS -------------------------------------------
+# This sorted our summary data in ascending order of fare_mean.
+# We can see that trips with 1 passenger have the lowest average fare.
 
-# Predict tip percentage based on passenger count and fare amount
+# It might be convenient at this point to save our summary stats as an object since we are just planning to sort the data frame by various columns.
+trips_summary = trips %>%
+  filter(passenger_count != 0) %>%
+  group_by(passenger_count) %>%
+  summarize(
+    fare_mean = mean(fare_amount),
+    fare_median = median(fare_amount),
+    n = n()
+  )
 
-# First let's just take the columns we actually will need. This will be cleaner.
+trips_summary %>%
+  arrange(fare_mean)
+
+# What if we wanted to sort in descending order of fare_mean?
+# We can use desc()
+trips_summary %>%
+  arrange(desc(fare_mean))
+
+# Since we observe that the fare median is often 9.5, we could sort by fare median and then by descending order of n.
+trips_summary %>%
+  arrange(fare_median, desc(n))
+
+# Ok, we've learned a bunch of dplyr verbs that helped us compute aggregate statistics (group_by, summarize), filter our data (filter), and sort our data (arrange).
+
+# Let's practice!
+# Complete Exercise 1 working on your own or with the person sitting next to you.
+
+# ______
+
+# Now let's move on to data wrangling for some more formal data analysis.
+
+
+### 2. PREPPING DATA FOR ANALYSIS ###
+### ----------------------------- ###
+
+# ______
+
+# But first let's learn how we can derive new columns/covariates.
+
+# Let's say we want to build a linear regression model to see if we can predict tip percentage based on passenger count and fare amount
+
+# Right now we have 21 columns. We only need two of them (passenger_count and fare_amount). We also need to create a tip percentage column.
+
+# Since we only need a few of our existing columns, let's just work with those ones - the full dataset is a bit unwieldy.
+
+# We can use the select() function.
+
+# ______
+
+# Ok, let's select just the passenger count, fare amount, and also tip amount, which we'll need to calculate the tip percentage.
+
 trips %>%
   select(passenger_count,fare_amount,tip_amount)
-# Introduce select
 
-# Now let's create a column for tip percent
-# We'll use the mutate verb
-# BaseR
+# Now we can see all three columns we are dealing with.
+
+# Ok, we are almost ready to supply this data frame to lm().
+# But we're missing our dependent variable!
+
+# We know we want a new column that calculates tip percentage by dividing tip amount by fare amount.
+
+# We could do this using baseR
 trips$tip_percent = trips$tip_amount / trips$fare_amount
 
-# Dplyr
+# But dplyr provides the mutate() verb to create new columns.
+# mutate() has some advantages over the baseR approach.
+
+# Before we explore those advantages, let's use select to remove that tip_percent column we just created.
+
+trips = trips %>%
+  select(-tip_percent)
+
+# ______
+
+# Let's use dplyr to create a new tip_percent column.
 trips %>%
   select(passenger_count,fare_amount,tip_amount) %>%
   mutate(tip_percent = tip_amount / fare_amount)
@@ -194,14 +318,16 @@ trips %>%
   select(passenger_count,fare_amount,tip_amount) %>%
   mutate(tip_percent = tip_amount / fare_amount) %>%
   summary()
-#Introduce mutate
 
-# Let's save that and remove tip_amount, which we don't need anymore
+# Ok, there's a bit of a weird outlier, but everything else looks good.
+
+# Let's save our linear regression data and remove tip_amount, which we don't need anymore.
 linregdata = trips %>%
   select(passenger_count,fare_amount,tip_amount) %>%
   mutate(tip_percent = tip_amount / fare_amount) %>%
   select(-tip_amount)
 
+# Now we'll run the linear regression and see how it looks.
 mod = lm(tip_percent ~ ., data=linregdata)
 summary(mod)
 
@@ -261,6 +387,10 @@ counts %>% ggplot(aes(x=pdistrict,y=ddistrict)) +
 ## Join using to the areas data set to get the borough for each district
 ## Grab only the columns we need and 'spread' into matrix format
 ## Rename and clean up
+
+areas = read.csv('area_info.csv', stringsAsFactors=F) %>% tbl_df
+
+str(areas)
 
 m <- trips %>% 
 	select(pdistrict, ddistrict) %>%
