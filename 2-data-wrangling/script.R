@@ -258,9 +258,13 @@ trips_summary %>%
 
 # Ok, we've learned a bunch of dplyr verbs that helped us compute aggregate statistics (group_by, summarize), filter our data (filter), and sort our data (arrange).
 
-# Let's take a stretch break before we move on to data wrangling for some more formal data analysis.
+# Let's practice!
+# Complete Exercise 1 working on your own or with the person sitting next to you.
 
 # ______
+
+# Now let's move on to data wrangling for some more formal data analysis.
+
 
 ### 2. PREPPING DATA FOR ANALYSIS ###
 ### ----------------------------- ###
