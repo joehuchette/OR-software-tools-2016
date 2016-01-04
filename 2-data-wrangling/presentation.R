@@ -3,27 +3,18 @@
 # 0. Prelims and Chaining -------------------------------------------------
 
 ## Let's load the data and check it out a bit. 
-trips = read.csv("2013-05-14_neighborhoods.csv", stringsAsFactors = FALSE)
-str(trips)
 
 ## install and load in dplyr
-install.packages("dplyr")
-library(dplyr)
 
 ## convert to local dataframe -- nicer for exploratory analysis
-trips = tbl_df(trips)
 
 ## Let's compute the standard deviation of fare_amount. First we'll use nested functions:
-sqrt(mean((trips$fare_amount - mean(trips$fare_amount))^2))
 
 ## Now we'll use chaining:
-(trips$fare_amount - mean(trips$fare_amount))^2 %>% mean() %>% sqrt()
 
 ## Could leave off the parentheses for single-argument functions
-(trips$fare_amount - mean(trips$fare_amount))^2 %>% mean %>% sqrt
 
 ## One-line histogram of passenger count
-trips$passenger_count %>% table() %>% plot()
 
 
 
@@ -76,7 +67,25 @@ trips$passenger_count %>% table() %>% plot()
 ## Run linear regression and examine results
 
 # 3. Origin-Destination Matrix --------------------------------------------
-##
+## An OD matrix has the ij-th entry as the number of trips from origin i to destination j. Our strategy is to count up by the relevant groups and then reshape the data using tidyr
+
+## Let's take a look at the pdistrict and ddistrict columns
+
+## Count rows with an NA in either column: 
+
+## Use count as an easy replacement for group_by() %>% summarize(n = n()) 
+
+## Count up trips for each OD pair
+
+## Let's filter out the NAs
+
+## Ok, tidyr time!
+
+## Spread the data by ddistrict, using n as values
+
+## Use 0 for any missing entries
+
+## 
 
 
 
