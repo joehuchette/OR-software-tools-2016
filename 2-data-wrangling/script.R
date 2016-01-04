@@ -55,7 +55,7 @@ sqrt(mean((trips$fare_amount - mean(trips$fare_amount))^2))
 # Notice that we didn't store any of the intermediate expressions. This is another advantage of chaining.
 
 ###-------------
-
+# Here's another example. 
 # Suppose we want to compute a histogram of the number of passengers on each trip. 
 # In words, we want to:
 ## Take the passenger_count column of trips.
@@ -332,83 +332,246 @@ mod = lm(tip_percent ~ ., data=linregdata)
 summary(mod)
 
 # 3. ORIGIN-DESTINATION MATRIX --------------------------------------------
-# In this section, we'll create an origin-destination (OD) matrix. An OD matrix 
-# is a matrix where the ij-th entry counts the number of trips from origin i to
-# destination j. 
-# Here, we'll use functions from tidyr, a great companion to dplyr for reshaping
-# data sets. In the exercises, you'll explore a different approach using 
-# dplyr functions only. 
+# One good question for a data set like this is: what 'trip patterns' tend to 
+# be most common? One answer to this question is an origin-destination (OD) 
+# matrix, in which the ij-th entry counts the number of trips from origin i to 
+# destination j. Let's explore how to create an OD matrix using functions from 
+# tidyr, a great companion to dplyr for reshaping data sets. 
 
-# EX. 3.1 -----------------------------------------------------------------
-# Create an OD matrix on the district-number level; i.e. the rows are 
-# pdistrict (p for pickup) and the columns are ddistrct (d for dropoff).
+# First, we'll create an OD matrix on the district-number level. We'll use the 
+# pdistrict and ddistrict columns. Let's take a look: 
 
-# SOL. 3.1 ----------------------------------------------------------------
+trips %>% select(pdistrict, ddistrict) %>% glimpse
 
-library(tidyr)
+# Looks like we've got some NAs; how many? We can find out using our old friends
+# select() and filter(). Note the use of the 'or' operator | in the filter 
+# call. 
 
-# Let's look at how many trips there were for each O-D pair
-counts = trips %>% count(pdistrict,ddistrict)
-# Introduce count function
+trips %>% select(pdistrict, ddistrict) %>% 
+	filter(is.na(pdistrict) | is.na(ddistrict)) %>%
+	summarise(n = n())
 
-counts = counts %>% 
+# So, there are about 16K NA missing data rows out of almost 500K observations; 
+# not too bad. We'll need to filter them out later. 
+
+# Ok, now we're ready to make that matrix. The first tool we'll want is the 
+# count function, which is a convenient shortcut for situations where you would 
+# use groupby() and n() to count objects by category. To illustrate, note that 
+# we could rewrite the last block of code using count: 
+
+trips %>% select(pdistrict, ddistrict) %>% 
+	filter(is.na(pdistrict) | is.na(ddistrict)) %>%
+	count
+
+# For a more interesting usage, let's look at how many trips there were for each
+# O-D pair
+trips %>% count(pdistrict,ddistrict)
+# Not bad, but let's filter out those NAs. It's probably easiest to do this 
+# before doing anything else: 
+
+trips %>% 
 	filter(!is.na(pdistrict),
-		   !is.na(ddistrict))
+		   !is.na(ddistrict)) %>%
+	count(pdistrict, ddistrict)
 
 # Our data is in 'long' or 'tidy' format, where each possible value of pdistrict
 # and ddistrict has its own row. This is inefficient, but great in many 
 # applications because there are few columns, filtering is easy, etc. Data in 
 # this format is not very efficient, but it is pretty easy to work with because 
 # there are only 3 columns, easy filtering, etc. However, we want 'wide' format,
-# in which each value of ddistrict will have its own column. 
+# in which each value of ddistrict will have its own column. To do this, we'll
+# use the tidyr function spread(). In this basic usage, we just tell spread() 
+# which column to 'spread out' ddistrict and use n for the values in the resulting
+# columns.  We'll go into more detail on spread() below. 
 
-counts %>% spread(ddistrict, n)
+library(tidyr)
+trips %>% 
+	filter(!is.na(pdistrict),
+		   !is.na(ddistrict)) %>%
+	count(pdistrict, ddistrict) %>%
+	spread(ddistrict,n)
 
-# Pretty good, but we should use 0s instead of NAs for pairs with no trips. 
+# Pretty good, but we should use 0s instead of NAs for pairs with no trips. We 
+# can do this using spread()'s fill parameter. 
 
-counts %>% spread(ddistrict, n, fill=0)  
+trips %>% 
+	filter(!is.na(pdistrict),
+		   !is.na(ddistrict)) %>%
+	count(pdistrict, ddistrict) %>%
+	spread(ddistrict,n, fill = 0)
 
-# This is still pretty hard to read. We can visualize it: 
-counts %>% ggplot(aes(x=pdistrict,y=ddistrict)) + 
-	geom_point(aes(size=n,alpha=n))
-# but it's still unclear what to make of this. 
+# This is a good start, but we have a data overload problem: there's just too 
+# much here to handle! It would be more interpretable if we could group by 
+# borough instead of by individual district. To do that, we'll need to 
+# add two columns for the pickup borough and dropoff borough. This information
+# is coded in pdistrict and ddistrict, but we need to access it using 
+# joins. 
 
-# EX. 3.2 -----------------------------------------------------------------
+# --------------------------------------------------------------------------
 # A cleaner approach is to bin by a more interpretable set of origins and 
 # destinations. Each district number corresponds to a borough. We'd like to 
 # look up the borough for each district number and make an OD matrix by 
-# borough instead. To get the borough, we'll need to use joins. 
+# borough instead. To get the borough, we'll use tidyr verbs and joins.  
 
-# SOL. 3.2 ----------------------------------------------------------------
-# This one needs some talking-through. Our strategy is to: 
-## Grab only the columns we need
-## Add a unique id for each trip using the row_number() function
-## Convert to long format using gather, a tidyr function
-## Join using to the areas data set to get the borough for each district
-## Grab only the columns we need and 'spread' into matrix format
-## Rename and clean up
-
+# First, let's load in the table that maps district codes to boroughs: 
 areas = read.csv('area_info.csv', stringsAsFactors=F) %>% tbl_df
 
+# What do we have here? 
 str(areas)
 
-m <- trips %>% 
+# Exactly two columns: the first is the district code and the second is the 
+# borough. 
+
+# Ok, now let's grab just the columns we need from trips: 
+trips %>% 
+	select(pdistrict, ddistrict)
+
+# Here we could filter out the NAs, but we're going to instead classify them as 
+# 'Unknown' and incorporate them into our final output.Continuing, we need to 
+# add a unique id column for each trip, you'll see why in a moment. An easy way 
+# to make a unique ID is the row_number() function, which does exactly what you 
+# think it does (on ungrouped data). 
+
+trips %>% 
+	select(pdistrict, ddistrict) %>%
+	mutate(trip_id = row_number()) 
+
+# Now we're ready to use our first tidyr verb, gather(). We'd like to get a new
+# df where the first column tells us whether the row is a pickup or a dropoff, 
+# the second tells us the trip_id, and the third gives the district number.
+	
+trips %>% 
+	select(pdistrict, ddistrict) %>%
+	mutate(trip_id = row_number()) %>%
+	gather(p_or_d, district, -trip_id)
+
+# How to read the gather call: convert all columns except trip_id into label 
+# or 'key' columns. Make a new column called 'p_or_d' to code the labels, 
+# and call the column of values 'district'.
+
+# So, what does our new data frame look like? We can see what's going on a bit 
+# better if we sort the data on trip_id:
+
+trips %>% 
+	select(pdistrict, ddistrict) %>%
+	mutate(trip_id = row_number()) %>%
+	gather(p_or_d, district, -trip_id) %>%
+	arrange(trip_id)
+
+# Each trip has a row corresponding to pickup and another corresponding to 
+# dropoff. 
+
+# Now we are ready to join. First, let's see what happens if we use a left join.
+# We need to tell dplyr that the 'district' column of trips is supposed to match
+# the 'id' column of areas. 
+
+trips %>% 
+	select(pdistrict, ddistrict) %>%
+	mutate(trip_id = row_number()) %>%
+	gather(p_or_d, district, -trip_id) %>%
+	left_join(areas, by = c('district' = 'id'))
+
+# Looks like we got a bunch of NAs, which makes sense, since we had a bunch of
+# NAs in the district column. That's ok for now. If we wanted to drop all 
+# entries with NAs in either trips or areas, we could use an inner_join instead. 
+
+# So we've done our join, and we want to get our data back into a more familiar
+# format. To do this, let's use the spread() function, which is the inverse of 
+# gather(). First, let's drop the district column, since we don't need it 
+# anymore: 
+
+trips %>% 
 	select(pdistrict, ddistrict) %>%
 	mutate(trip_id = row_number()) %>%
 	gather(p_or_d, district, -trip_id) %>%
 	left_join(areas, by = c('district' = 'id')) %>%
-	select(trip_id, p_or_d, borough) %>%
+	select(-district)
+
+# Now we're ready to spread(). We want to use the values of p_or_d to code two
+# new columns, with values that come from borough. Since we have the trip_id 
+# column, spread() knows to keep those entries together -- that's why we needed
+# it in the first place. 
+
+trips %>% 
+	select(pdistrict, ddistrict) %>%
+	mutate(trip_id = row_number()) %>%
+	gather(p_or_d, district, -trip_id) %>%
+	left_join(areas, by = c('district' = 'id')) %>%
+	select(-district) %>%
+	spread(key = p_or_d, value = borough)
+
+# Great, now we are ready to count again. However, our column names are out of
+# date (they're not districts anymore), so let's rename them using an 
+# intuitive function: 
+
+trips %>% 
+	select(pdistrict, ddistrict) %>%
+	mutate(trip_id = row_number()) %>%
+	gather(p_or_d, district, -trip_id) %>%
+	left_join(areas, by = c('district' = 'id')) %>%
+	select(-district) %>%
+	spread(key = p_or_d, value = borough) %>%
+	rename(pborough = pdistrict, dborough = ddistrict)
+
+# Ok, ready to count! 
+trips %>% 
+	select(pdistrict, ddistrict) %>%
+	mutate(trip_id = row_number()) %>%
+	gather(p_or_d, district, -trip_id) %>%
+	left_join(areas, by = c('district' = 'id')) %>%
+	select(-district) %>%
 	spread(key = p_or_d, value = borough) %>%
 	rename(pborough = pdistrict, dborough = ddistrict) %>%
-	filter(!is.na(dborough), !is.na(pborough)) %>%
+	count(pborough, dborough)
+
+# Note that we still have some NAs. We could filter them out using familiar 
+# methods, or we could use the 'fill' parameter of spread to write 'Unknown' 
+# there instead: 
+
+trips %>% 
+	select(pdistrict, ddistrict) %>%
+	mutate(trip_id = row_number()) %>%
+	gather(p_or_d, district, -trip_id) %>%
+	left_join(areas, by = c('district' = 'id')) %>%
+	select(-district) %>%
+	spread(key = p_or_d, value = borough, fill = 'Unknown') %>%
+	rename(pborough = pdistrict, dborough = ddistrict) %>%
+	count(pborough, dborough)
+
+# Finally, we can get this into 'matrix form' by spreading again. We want
+# dborough to be the columns, and the values to be n. 
+
+trips %>% 
+	select(pdistrict, ddistrict) %>%
+	mutate(trip_id = row_number()) %>%
+	gather(p_or_d, district, -trip_id) %>%
+	left_join(areas, by = c('district' = 'id')) %>%
+	select(-district) %>%
+	spread(key = p_or_d, value = borough, fill = 'Unknown') %>%
+	rename(pborough = pdistrict, dborough = ddistrict) %>%
 	count(pborough, dborough) %>%
-	spread(key = dborough, value = n, fill = 0) # convert to `matrix shaped' df
+	spread(key = dborough, value = n, fill = 0)
 
-m
+# That's what we wanted! For the sake of visualization, we'll save this as an 
+# object m: 
 
-# This is also a bit easier to visualize: 
+m = trips %>% 
+	select(pdistrict, ddistrict) %>%
+	mutate(trip_id = row_number()) %>%
+	gather(p_or_d, district, -trip_id) %>%
+	left_join(areas, by = c('district' = 'id')) %>%
+	select(-district) %>%
+	spread(key = p_or_d, value = borough, fill = 'Unknown') %>%
+	rename(pborough = pdistrict, dborough = ddistrict) %>%
+	count(pborough, dborough) %>%
+	spread(key = dborough, value = n, fill = 0)
 
-m <- m %>% select(-pborough) %>% data.matrix
-rownames(m) <- colnames(m)
+# And then we'll use the code below to draw a heatmap. 
+
+m = m %>% select(-pborough) %>% data.matrix
+rownames(m) = colnames(m)
 heatmap(m, symm = TRUE, scale = 'row')
 
+# Each row corresponds to an origin, and each column to a destination. We see that 
+# most trips tend to stay within the same borough, but that almost all 
+# have a high likelihood to end in Manhattan. 
