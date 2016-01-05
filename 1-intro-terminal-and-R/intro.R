@@ -173,56 +173,55 @@ sum(runwaysBOS$capacities)
 # - Let's open the taxi data. It is found in
 #   /my/path/to/OR-software-tools-2016/data/2013-05-14.csv
 # - Let's find the path to that file on our own computer.
-# -- (Mac) 
+# -- (Mac) /.../OR-software-tools-2016/data/2013-05-14.csv
+# -- (Windows) E:/.../OR-software-tools-2016/data/2013-05-14.csv
+#              where "E" is whichever drive we mounted athena using
+#              win-sshfs
 # Load csv files using read.csv
 # header = TRUE is usually ASSUMED, so not strictly necessary
-CEOcomp = read.csv(file = "CEOcomp.csv", header = TRUE)
-
-# Use str to look at variable names
-str(CEOcomp)
+taxi_data = read.csv(file = "/my/path/to/OR-software-tools-2016/data/2013-05-14.csv", header = TRUE)
 
 # Use names() to extract column names
-names(CEOcomp)
+names(taxi_data)
 
-# Use the $ command to look at specific variables
-CEOcomp$Years
-CEOcomp$MBA
+# Use str to look at details of columns
+str(taxi_data)
 
-# If you only have one dataset, you can attach the name of the
-# data frame.  This isn't generally recommended practice, though!
-attach(CEOcomp)
-Years
-MBA
-detach(CEOcomp)
+# Use head() to look at the first several rows
+head(taxi_data)
+
+# Use the $ command to look at specific columns
+taxi_data$vendor_id
+taxi_data$rate_code
+
+
 
 ####################################################
 ## BASIC STATISTICS, PLOTTING, AND SUMMARY TABLES ##
 ####################################################
 
 # Calculate the mean, standard deviation, and other statistics
-mean(CEOcomp$Years)
-sd(CEOcomp$Years)
-summary(CEOcomp$Years)
+mean(taxi_data$passenger_count)
+sd(taxi_data$passenger_count)
+summary(taxi_data$passenger_count)
 
-# Plot compensation versus years of experience
-plot(CEOcomp$Years, CEOcomp$TotalCompensation)
+# Plot fare amount vs trip distance
+plot(taxi_data$trip_distance, taxi_data$fare_amount)
 
 # Plot with a title, x- and y-axis labels
-plot(CEOcomp$Years, CEOcomp$TotalCompensation, main="Total Compensation by Year", xlab = "Years of Experience", ylab = "Total Compensation (thousand USD)")
+plot(taxi_data$trip_distance, taxi_data$fare_amount, main="Fare Amount vs. Trip Distance", xlab = "Trip Distance [mi]", ylab = "Fare Amount [$]")
 
 # For other plots and information about the graphics package
 library(help = "graphics")
 
 # Create a table to summarize the data
-# Here, we look at mean CEO compensation, based on whether or not 
-# the CEO has an MBA
-tapply(CEOcomp$TotalCompensation, CEOcomp$MBA, mean)
+# Here, we look at mean trip distance, based on the number
+# of passengers in the taxi
+tapply(taxi_data$trip_distance, taxi_data$passenger_count, mean)
 
 # We can also create a table to look at counts 
-table(CEOcomp$Year, CEOcomp$MBA)
+table(taxi_data$passenger_count, taxi_data$payment_type)
 
-# In our dataset, how many CEOs have 7 years of experience and 
-# an MBA?
 
 ###############################
 ## DEALING WITH MISSING DATA ##
@@ -235,13 +234,13 @@ table(CEOcomp$Year, CEOcomp$MBA)
 # methods for dealing with missing data exist, but we will not go
 # into detail here.
 
-# Load the CEOmissing dataset. This is just the previous dataset
-# with some entries missing.
-CEOmissing = read.csv("CEOmissing.csv")
+# Load the a dataset with missing entries
+df_with_missing_entries <- data.frame(age=c(23,35,NA,42,53), 
+                                      name=c("Alice", "Bob", "Cindy", "Donald", "Elliot"))
 
 # Use the summary function to see how much missing data there is.
-summary(CEOmissing)
-str(CEOmissing)
+summary(df_with_missing_entries)
+str(df_with_missing_entries)
 
 # Let's remove all of the rows where there is an entry missing. (The entry is NA)
 # First note that we cannot use '==' to check if an element is an NA
@@ -253,18 +252,23 @@ is.na(5)
 is.na(NA)
 
 # Now let's only select rows where all of the data is present
-CEOnomissing = subset(CEOmissing, !is.na(TotalCompensation) & !is.na(Years) & !is.na(ChangeStockPrice) & !is.na(ChangeCompanySales) & !is.na(MBA))
-summary(CEOnomissing)
-str(CEOnomissing)
+df_without_missing_entries = subset(df_with_missing_entries, 
+                                    !is.na(age) & !is.na(name))
+summary(df_without_missing_entries)
+str(df_without_missing_entries)
 
 # Alternatively, we could use the na.omit function
-CEOomitmissing = na.omit(CEOmissing)
-summary(CEOomitmissing)
-str(CEOomitmissing)
+df_without_missing_entries = na.omit(df_with_missing_entries)
+summary(df_without_missing_entries)
+str(df_without_missing_entries)
 
 ################################
 ## UNDERSTANDING R WORKSPACES ##
 ################################
+
+# When we are working with data frames, we can save the
+# data frame as a .csv
+write.csv(file="df_without_missing_entries.csv", df_without_missing_entries)
 
 # You may save an entire workspace, including variables using the
 # following command (alternatively, you can use the Workspace tab
@@ -280,7 +284,7 @@ load("eg.RData")
 # as before
 
 # You can also save individual variables as follows:
-save(CEOcomp, file = "CEOcomp.RData")
+save(df_without_missing_entries, file = "df_without_missing_entries.RData")
 
 # This is useful when the variable is given the result of 
 # a computation that takes a lot of time (e.g., loading
@@ -306,14 +310,14 @@ save(CEOcomp, file = "CEOcomp.RData")
 ##
 # 2a) Try out a few other basic statistics and graphing functions
 
-min(CEOcomp$Years)
-median(CEOcomp$Years)
-max(CEOcomp$Years)
+min(taxi_data$trip_distance)
+median(taxi_data$trip_distance)
+max(taxi_data$trip_distance)
 
-sum(CEOcomp$MBA)
+sum(taxi_data$total_amount)
 
-hist(CEOcomp$Years)
-boxplot(CEOcomp$Years)
+hist(taxi_data$total_amount)
+boxplot(taxi_data$total_amount)
 
 #  b) Edit the histogram plot above to ensure that it has a title
 #     and that the x-axis is labeled properly
@@ -321,28 +325,4 @@ boxplot(CEOcomp$Years)
 ##
 # 3) Use the tapply() function on df.runways to obtain a table
 #    detailing the total capacity at each airport (Hint: use the sum() function)
-
-
-##
-# 4a) Load the on-time performance dataset "otp.csv"
-
-
-
-
-#  b) Take a look at the structure of the on-time performance dataset. This 
-#     dataset gives the on-time performance of airplanes in September of 2014.
-
-
-
-
-#  c) Find the airport with the most departing flights during this time period. 
-#     (Use the Origin column)
-
-
-
-#  d**) Determine the ten airports that have the highest number of departing
-#     and arriving flights.  Use the "Origin" and "Dest" columns.  Create a table
-#     that contains the number of flights between these top ten airports.
-#     (Hint: some of the following functions might be useful -- 
-#     summary, table, subset, factor, names, is.element, sort)
 
