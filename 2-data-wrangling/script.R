@@ -1,9 +1,13 @@
-
 ### LOADING THE DATA ###
 
 # Let's read in the dataset describing NYC taxi trips on May 14, 2013. 
 # Don't forget to start by navigating to the directory where you've saved the CSV file.
+
+# Spell out instructions using Session -> Set Working Directory and navigate to data folder
+setwd("~/Google Drive/orc/iap/data")
+
 # We'll set stringsAsFactors to FALSE just to make sure nothing gets converted to a factor variable that we don't want.
+
 trips = read.csv("2013-05-14_neighborhoods.csv",stringsAsFactors=F) 
 # This might take a few seconds since it's a fairly large file.
 

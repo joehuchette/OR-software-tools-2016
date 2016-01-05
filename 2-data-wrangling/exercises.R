@@ -5,7 +5,6 @@
 ## Uncomment and run these lines if you haven't installed these packages yet. 
 # install.packages('dplyr')
 # install.packages('tidyr')
-# install.packages('ggplot2')
 
 library(dplyr)
 library(tidyr)
@@ -14,7 +13,7 @@ library(ggplot2)
 # Use Session -> Set Working Directory -> Choose Directory to navigate to 
 # the folder in which your data sets are stored. If the two commands below execute successfully, you'll know you've done it right.  
 
-trips = read.csv('2013-05-14_neighborhoods.csv') %>% tbl_df
+trips = read.csv('/2013-05-14_neighborhoods.csv') %>% tbl_df
 areas = read.csv('area_info.csv') %>% tbl_df
 
 # 1. EXPLORING A DATA SET -----------------------------------------------------
