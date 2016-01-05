@@ -9,11 +9,18 @@ Before Thursday's session, please fire up RStudio and run the following commands
     install.packages('dplyr')
     install.packages('tidyr')
     
+    library(dplyr)
+    library(tidyr)
+
     data.frame(a = c("Col1","Col2"), b= c(5,10)) %>% spread(a,b)
 
-You should see some messages confirming that the software has installed correctly. If so, you are good to go -- that's all the software you'll need for Thursday.
+The result should look like this: 
 
-To confirm, please post a snapshot of the output from these lines of code to Stellar before Thursday.
+      Col1 Col2
+    1    5   NA
+    2   NA   10
+
+To confirm, please post a snapshot of your RStudio console with the code and output to Stellar before Thursday morning. 
 
 ## Files in this Directory
 
