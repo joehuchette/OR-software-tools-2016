@@ -8,6 +8,7 @@ Before Thursday's session, please fire up RStudio and run the following commands
 
     install.packages('dplyr')
     install.packages('tidyr')
+    
     data.frame(a = c("Col1","Col2"), b= c(5,10)) %>% spread(a,b)
 
 You should see some messages confirming that the software has installed correctly. If so, you are good to go -- that's all the software you'll need for Thursday.
