@@ -13,6 +13,11 @@ You should see some messages confirming that the software has installed correctl
 
 ## Files in this Directory
 
+### Keeping Current
+
+To ensure that you have the most current versions of all files, please fire up a terminal, navigate to the directory into which you cloned the full set of materials for 15.S60, and run `git pull`. 
+
+### Main Files
 You'll see a number of files in this directory. The ones you'll need for Thursday are:
 
 - `presentation.R`: this is the outline we'll be using as we code through examples together. We recommend that you open up your local version of this file and follow along. 
