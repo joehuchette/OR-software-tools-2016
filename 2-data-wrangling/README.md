@@ -2,14 +2,17 @@
 
 Welcome to the second session of 15.S60! In this session, we'll discuss tools for data exploration, cleaning, and manipulation using state-of-the-art packages for the `R` programming language. 
 
-## Installing Software
+## Preassignment: Installing Software
 
 Before Thursday's session, please fire up RStudio and run the following commands in the console window: 
 
     install.packages('dplyr')
     install.packages('tidyr')
+    data.frame(a = c("Col1","Col2"), b= c(5,10)) %>% spread(a,b)
 
-You should see some messages confirming that the software has installed correctly. If so, you are good to go -- that's all the software you'll need for Thursday. 
+You should see some messages confirming that the software has installed correctly. If so, you are good to go -- that's all the software you'll need for Thursday.
+
+To confirm, please post a snapshot of the output from these lines of code to Stellar before Thursday.
 
 ## Files in this Directory
 
