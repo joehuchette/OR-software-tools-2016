@@ -179,7 +179,7 @@ sum(runwaysBOS$capacities)
 #              win-sshfs
 # Load csv files using read.csv
 # header = TRUE is usually ASSUMED, so not strictly necessary
-taxi_data = read.csv(file = "/Users/brad-sturt/OR-software-tools-2016/data/2013-05-14.csv", header = TRUE)
+taxi_data = read.csv(file = "/my/path/to/OR-software-tools-2016/data/2013-05-14.csv", header = TRUE)
 
 # Use names() to extract column names
 names(taxi_data)
@@ -234,8 +234,7 @@ table(taxi_data$passenger_count, taxi_data$payment_type)
 # methods for dealing with missing data exist, but we will not go
 # into detail here.
 
-# Load the CEOmissing dataset. This is just the previous dataset
-# with some entries missing.
+# Load the a dataset with missing entries
 df_with_missing_entries <- data.frame(age=c(23,35,NA,42,53), 
                                       name=c("Alice", "Bob", "Cindy", "Donald", "Elliot"))
 
@@ -266,6 +265,10 @@ str(df_without_missing_entries)
 ################################
 ## UNDERSTANDING R WORKSPACES ##
 ################################
+
+# When we are working with data frames, we can save the
+# data frame as a .csv
+write.csv(file="df_without_missing_entries.csv", df_without_missing_entries)
 
 # You may save an entire workspace, including variables using the
 # following command (alternatively, you can use the Workspace tab
