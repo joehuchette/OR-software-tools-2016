@@ -1,10 +1,7 @@
 ### LOADING THE DATA ###
 
 # Let's read in the dataset describing NYC taxi trips on May 14, 2013. 
-# Don't forget to start by navigating to the directory where you've saved the CSV file.
-
-# Spell out instructions using Session -> Set Working Directory and navigate to data folder
-setwd("~/Google Drive/orc/iap/data")
+# Don't forget to start by navigating to the directory where you've saved the CSV file, using Session -> Set Working Directory, or setwd("YOUR_PATH_HERE")
 
 # We'll set stringsAsFactors to FALSE just to make sure nothing gets converted to a factor variable that we don't want.
 
@@ -335,7 +332,11 @@ linregdata = trips %>%
 mod = lm(tip_percent ~ ., data=linregdata)
 summary(mod)
 
-# 3. ORIGIN-DESTINATION MATRIX --------------------------------------------
+
+
+### 3. ORIGIN-DESTINATION MATRIX ###
+### ----------------------------- ###
+
 # One good question for a data set like this is: what 'trip patterns' tend to 
 # be most common? One answer to this question is an origin-destination (OD) 
 # matrix, in which the ij-th entry counts the number of trips from origin i to 

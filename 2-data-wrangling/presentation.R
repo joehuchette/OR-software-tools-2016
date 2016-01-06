@@ -26,7 +26,7 @@
 
 ## Assign the result to a new df
 
-## Groupby() without summarize()
+## groupby() without summarize()
 
 ## Assign the result to a new df
 
@@ -59,6 +59,8 @@
 ## Compute tip percentage using dplyr
 
 ## Check out the results
+
+## Remove tip_amount
 
 ## Save as a new df
 
