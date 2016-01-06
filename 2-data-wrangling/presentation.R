@@ -8,11 +8,11 @@
 
 ## convert to local dataframe -- nicer for exploratory analysis
 
-## Let's compute the standard deviation of fare_amount. First we'll use nested functions:
+## Let's compute the standard deviation of fare_amount. Recall that the standard deviation is the root mean square deviation from the mean. First we'll use nested functions:
 
 ## Now we'll use chaining:
 
-## Could leave off the parentheses for single-argument functions
+## We could leave off the parentheses for single-argument functions
 
 ## One-line histogram of passenger count
 
@@ -118,9 +118,11 @@
 
 ## Ok,we have our data in the right shape for counting
 
-## Use 'Unknown' for the NAs by supplying a fill param to spread
-
 ## Spread out one more time to get matrix format; each dborough should be a column
+
+## Ack, we have an error! Any ideas what's going on?
+
+## Fix the error -- we've seen this before
 
 ## Assign result to variable m
 
@@ -128,5 +130,3 @@
 m = m %>% select(-pborough) %>% data.matrix
 rownames(m) = colnames(m)
 heatmap(m, symm = TRUE, scale = 'row')
-
-
