@@ -35,8 +35,8 @@ You'll see a number of files in this directory. The ones you'll need for Thursda
 - `exercises.R`: After each main presentation section, you'll break off and work on your own or with a neighbor to work through a few more examples. This file contains both the prompts and solutions. 
 
 You may also find the following files useful:
-- `presentation.R`: This is a more advanced script that contains comments following the outline of `script.r`, but doesn't contain any of the commands. If you'd like to type out the code yourself during the session, you can use this shell file.
-- `grades.R`, a short script that contains the commands shown on the toy data set in the slides. This file is primarily for your reference.
+- `presentation.R`: This is a skeleton script that contains comments following the outline of `script.r`, but doesn't contain any of the commands. If you feel you'd like somewhere to type out the code yourself during the session, you can use this skeleton file instead of or in addition to `script.R`.
+- `grades.R`: A short script that contains the commands shown on the toy data set in the slides. This file is primarily for your reference.
 
 ## Additional Resources
 
