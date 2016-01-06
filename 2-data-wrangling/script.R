@@ -396,10 +396,7 @@ trips %>%
 
 # This is a good start, but we have a data overload problem: there's just too much here to handle! It would be more interpretable if we could group by borough instead of by individual district. To do that, we'll need to add two columns for the pickup borough and dropoff borough. This information is coded in pdistrict and ddistrict, but we need to access it by referring to another table. Let's do that using joins.  
 
-
 # --------------------------------------------------------------------------
-
-
 
 
 

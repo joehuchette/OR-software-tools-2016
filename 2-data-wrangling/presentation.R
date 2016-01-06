@@ -85,6 +85,10 @@
 
 ## Use 0 for any missing entries by supplying a fill param for spread
 
+
+
+
+
 ## Let's group by borough instead. The result will look like this: 
 
 #        pborough Bronx Brooklyn Manhattan Queens Staten Island Unknown
@@ -94,7 +98,6 @@
 # 4        Queens   308     2579     14790   5708            16     356
 # 5 Staten Island     0        0         2      1             4       0
 # 6       Unknown     9       20       490     60             2   12932
-
 
 ## Pull in areas table so we can group by borough
 
@@ -106,19 +109,19 @@
 
 ## We have two columns that match the id column of the area table, but we need just one. gather() will fix this for us by converting to long format. 
 
-## easier to see if we sort on trip_id
+## easier to see if we sort on trip_id. Each row is a district id, labelled by what trip it's for and whether it was the pickup or the dropoff. 
 
 ## we have just one column of district ids, so we are ready to join
 
 ## don't need district column any more
 
-## spread it back out; want a pdistrict and ddistrict columns again
+## spread it back out; want a pdistrict and ddistrict columns again. Each row is a trip, with id, start, and end locations. 
 
 ## column names are out of date, rename them
 
 ## Ok,we have our data in the right shape for counting
 
-## Spread out one more time to get matrix format; each dborough should be a column
+## Spread out one more time to get matrix format. Each row is an origin and each column is a destination. 
 
 ## Ack, we have an error! Any ideas what's going on?
 
