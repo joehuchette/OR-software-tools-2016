@@ -12,6 +12,15 @@ trips = read.csv("2013-05-14_neighborhoods.csv",stringsAsFactors=F)
 str(trips)
 # We have 490,347 observations of 21 variables.
 
+# Now that we've examined the variables, there are a few variables we should convert to factors
+trips$vendor_id = factor(trips$vendor_id)
+trips$rate_code = factor(trips$rate_code)
+trips$store_and_fwd_flag = factor(trips$store_and_fwd_flag)
+trips$payment_type = factor(trips$payment_type)
+
+# Now let's check out str() again to see what changed.
+str(trips)
+
 
 ### 0. CHAINING AND OTHER PRELIMINARIES ###
 ### ___________________________________ ###
