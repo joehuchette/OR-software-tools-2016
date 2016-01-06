@@ -382,7 +382,7 @@ trips %>%
 	filter(!is.na(pdistrict),
 		   !is.na(ddistrict)) %>%
 	count(pdistrict, ddistrict) %>%
-	spread(ddistrict,n)
+	spread(key = ddistrict, value = n)
 
 # Nice -- we're matrix-shaped, just like we wanted. Each row corresponds to an origin, each column to a destination, and the corresponding entry is the number of trips between them. 
 
@@ -392,11 +392,15 @@ trips %>%
 	filter(!is.na(pdistrict),
 		   !is.na(ddistrict)) %>%
 	count(pdistrict, ddistrict) %>%
-	spread(ddistrict,n, fill = 0)
+	spread(key = ddistrict,value = n, fill = 0)
 
 # This is a good start, but we have a data overload problem: there's just too much here to handle! It would be more interpretable if we could group by borough instead of by individual district. To do that, we'll need to add two columns for the pickup borough and dropoff borough. This information is coded in pdistrict and ddistrict, but we need to access it by referring to another table. Let's do that using joins.  
 
+
 # --------------------------------------------------------------------------
+
+
+
 
 
 # First, let's load in the table that maps district codes to boroughs: 
@@ -422,7 +426,7 @@ trips %>%
 trips %>% 
 	select(pdistrict, ddistrict) %>%
 	mutate(trip_id = row_number()) %>%
-	gather(p_or_d, district, pdistrict, ddistrict)
+	gather(key = p_or_d, value = district, pdistrict, ddistrict)
 
 # Nice, this is what we wanted. What did we do with that gather() call?
 # - "Create a key (label) new column and call it p_or_d"
@@ -435,7 +439,7 @@ trips %>%
 trips %>% 
 	select(pdistrict, ddistrict) %>%
 	mutate(trip_id = row_number()) %>%
-	gather(p_or_d, district, -trip_id) %>%
+	gather(key = p_or_d, value = district, pdistrict, ddistrict) %>%
 	arrange(trip_id)
 
 # Each trip has a row corresponding to pickup and another corresponding to dropoff. 
@@ -445,7 +449,7 @@ trips %>%
 trips %>% 
 	select(pdistrict, ddistrict) %>%
 	mutate(trip_id = row_number()) %>%
-	gather(p_or_d, district, -trip_id) %>%
+	gather(key = p_or_d, value = district, pdistrict, ddistrict) %>%
 	left_join(areas, by = c('district' = 'id'))
 
 # Looks like we got a bunch of NAs, which makes sense, since we had a bunch of NAs in the district column. That's ok for now. If we wanted to drop all entries with NAs in either trips or areas, we could use an inner_join instead. 
@@ -456,7 +460,7 @@ trips %>%
 trips %>% 
 	select(pdistrict, ddistrict) %>%
 	mutate(trip_id = row_number()) %>%
-	gather(p_or_d, district, -trip_id) %>%
+	gather(key = p_or_d, value = district, pdistrict, ddistrict) %>%
 	left_join(areas, by = c('district' = 'id')) %>%
 	select(-district)
 
@@ -468,7 +472,7 @@ trips %>%
 trips %>% 
 	select(pdistrict, ddistrict) %>%
 	mutate(trip_id = row_number()) %>%
-	gather(p_or_d, district, -trip_id) %>%
+	gather(key = p_or_d, value = district, pdistrict, ddistrict) %>%
 	left_join(areas, by = c('district' = 'id')) %>%
 	select(-district) %>%
 	spread(key = p_or_d, value = borough)
@@ -484,7 +488,7 @@ trips %>%
 trips %>% 
 	select(pdistrict, ddistrict) %>%
 	mutate(trip_id = row_number()) %>%
-	gather(p_or_d, district, -trip_id) %>%
+	gather(key = p_or_d, value = district, pdistrict, ddistrict) %>%
 	left_join(areas, by = c('district' = 'id')) %>%
 	select(-district) %>%
 	spread(key = p_or_d, value = borough) %>%
@@ -495,7 +499,7 @@ trips %>%
 trips %>% 
 	select(pdistrict, ddistrict) %>%
 	mutate(trip_id = row_number()) %>%
-	gather(p_or_d, district, -trip_id) %>%
+	gather(key = p_or_d, value = district, pdistrict, ddistrict) %>%
 	left_join(areas, by = c('district' = 'id')) %>%
 	select(-district) %>%
 	spread(key = p_or_d, value = borough) %>%
@@ -508,7 +512,7 @@ trips %>%
 trips %>% 
 	select(pdistrict, ddistrict) %>%
 	mutate(trip_id = row_number()) %>%
-	gather(p_or_d, district, -trip_id) %>%
+	gather(key = p_or_d, value = district, pdistrict, ddistrict) %>%
 	left_join(areas, by = c('district' = 'id')) %>%
 	select(-district) %>%
 	spread(key = p_or_d, value = borough) %>%
@@ -522,7 +526,7 @@ trips %>%
 trips %>% 
 	select(pdistrict, ddistrict) %>%
 	mutate(trip_id = row_number()) %>%
-	gather(p_or_d, district, -trip_id) %>%
+	gather(key = p_or_d, value = district, pdistrict, ddistrict) %>%
 	left_join(areas, by = c('district' = 'id')) %>%
 	select(-district) %>%
 	spread(key = p_or_d, value = borough, fill = 'Unknown') %>%
@@ -536,7 +540,7 @@ trips %>%
 m = trips %>% 
 	select(pdistrict, ddistrict) %>%
 	mutate(trip_id = row_number()) %>%
-	gather(p_or_d, district, -trip_id) %>%
+	gather(key = p_or_d, value = district, pdistrict, ddistrict) %>%
 	left_join(areas, by = c('district' = 'id')) %>%
 	select(-district) %>%
 	spread(key = p_or_d, value = borough, fill = 'Unknown') %>%
