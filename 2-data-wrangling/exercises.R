@@ -13,7 +13,7 @@
 # EX. 1.1: Calculating summary stats #
 # Use the group_by() and summarize() functions to calculate aggregate statistics for each O-D pair. The three columns you create should be:
 # 1) "avgdist": The average trip distance along that O-D path.
-# 2) "totaldist": The total number of files traveled by taxis on this day over that O-D path.
+# 2) "totaldist": The total number of miles traveled by taxis on this day over that O-D path.
 # 3) "n": The # of trips taken along that O-D path.
 # Note: Origins are indicated by the pickup district (pdistrict) and destinations are indicated by the dropoff district (ddistrict)
 
