@@ -1,9 +1,3 @@
-# A word of advice #
-# If you're struggling with any of these exercises, try the following:
-# 1) Take a deep breath and give it one more try.
-# 2) Ask one of your neighbors if they have any ideas.
-# 3) Open up solutions.R which has the code that solves the exercises.
-
 
 ### EXERCISE 1. EXPLORING TRIP DISTANCES ###
 ### ------------------------------------ ###
@@ -22,11 +16,13 @@
 # Tip: If there is ever a function, like "sum", that you don't know how to use, you can access the help documentation for that function by typing it into the console preceded by a question mark, like so:
 ?sum
 
-### YOUR CODE HERE ###
-#
-#
-### -------------- ###
-
+trips %>%
+  group_by(pdistrict,ddistrict) %>%
+  summarize(
+    avgdist = mean(trip_distance),
+    totaldist = sum(trip_distance),
+    n = n()
+  )
 
 
 # EX. 1.2 : Removing missing data #
@@ -36,29 +32,41 @@
 
 # Hint: You will need to use either the is.na() function with the negation operator "!", or the na.omit() function.
 
-### YOUR CODE HERE ###
-#
-#
-### -------------- ###
-
-
+trips %>%
+  group_by(pdistrict,ddistrict) %>%
+  summarize(
+    avgdist = mean(trip_distance),
+    totaldist = sum(trip_distance),
+    n = n()
+  ) %>%
+  filter(!is.na(pdistrict),!is.na(ddistrict))
 
 
 # EX. 1.3: Investigating the longest trips #
 # Among O-D paths that had at least 50 trips that day, which directed path had the highest average trip distance?
 
 # HINT: If your data frame is grouped, arrange() will sort within those groups. If you want to sort the full table, you will need to ungroup() before you sort.
+trips %>%
+  group_by(pdistrict,ddistrict) %>%
+  summarize(
+    avgdist = mean(trip_distance),
+    totaldist = sum(trip_distance),
+    n = n()
+  ) %>%
+  filter(!is.na(pdistrict),!is.na(ddistrict),n>=50) %>%
+  ungroup %>%
+  arrange(desc(avgdist))
 
-### YOUR CODE HERE ###
-#
-#
-### -------------- ###
+# ANSWER: pdistrict 162, ddistrict 8
 
 # What was the average distance of those trips?
+# ANSWER: 21.5 miles
 
 # How many trips were made along that directed path?
+# ANSWER: 51 trips
 
 # How many total miles did taxis travel along that path in that direction?
+# ANSWER: 1097 miles
 
 
 
@@ -85,8 +93,6 @@ OD_stats = trips %>%
 
 ### -------------- ###
 ### END EXERCISE 1 ###
-
-
 
 
 ### EXERCISE 2. EXPLORING TRIP SPEED ###
@@ -119,15 +125,13 @@ trips2 = trips %>%
     trip_duration = dropoff_datetime - pickup_datetime
   )
 
-
 # EX. 2.1: Calculating average trip speed #
 # Look at the three mutated columns in trips2 using select.
-### YOUR CODE HERE ###
-#
-#
-### -------------- ###
+trips2 %>%
+  select(pickup_datetime,dropoff_datetime,trip_duration)
 
 # The trip_duration column has a weird data type called "difftime". What units is the duration measured in?
+# ANSWER: Seconds
 
 
 # Use mutate to do the following:
@@ -135,28 +139,27 @@ trips2 = trips %>%
 # 2) Add an "avgtripspeed" column in miles per hour. If trip duration is 0, set avgtripspeed to -1.
 # HINT: You will need to convert trip_duration to a numeric variable using as.numeric() before you can convert to minutes.
 # HINT: You may need the ifelse() function when creating "avgtripspeed".
-
-### YOUR CODE HERE ###
-#
-#
-### -------------- ###
+trips2 %>%
+  mutate(
+    trip_duration = as.numeric(dropoff_datetime - pickup_datetime) / 60,
+    avgtripspeed = ifelse(trip_duration > 0, trip_distance / (trip_duration / 60), -1)
+    ) %>%
+  select(trip_duration, avgtripspeed)
 
 # For better viewing, select only the two columns you "mutated".
 # CAUTION: Be careful using select when saving over an existing object. We often use select to display better to the console, but we can accidentally delete columns if we use it when storing data frames.
 
 
 # What is the average trip duration across all trips?
+# ANSWER: 13.04 minutes
 
 # What is the average trip speed across all trips?
-
+# ANSWER: 14.04 miles per hour
 
 
 
 # EX. 2.2: Investigating the fastest trips #
 # Among O-D paths with at least 50 trips, which O-D pair has the highest average trip speed?
-
-### YOUR CODE HERE ###
-# You can start with the following snippet
 trips2 %>%
   mutate(
     trip_duration = as.numeric(dropoff_datetime - pickup_datetime) / 60,
@@ -168,17 +171,34 @@ trips2 %>%
     avgspeed = mean(avgtripspeed),
     n = n()
   ) %>%
-#
-### -------------- ###
+  filter(n >= 50) %>%
+  ungroup %>%
+  arrange(desc(avgspeed))
 
+# ANSWER: pdistrict 168, ddistrict 168
 
 # Which O-D path has the longest average duration among those with at least 50 trips?
-### YOUR CODE HERE ###
-#
-#
-### -------------- ###
+
+trips2 %>%
+  mutate(
+    trip_duration = as.numeric(dropoff_datetime - pickup_datetime) / 60,
+    avgtripspeed = ifelse(trip_duration > 0, trip_distance / (trip_duration / 60), -1)
+  ) %>%
+  group_by(pdistrict,ddistrict) %>%
+  summarize(
+    avgduration = mean(trip_duration),
+    avgspeed = mean(avgtripspeed),
+    n = n()
+  ) %>%
+  filter(n >= 50) %>%
+  ungroup %>%
+  arrange(desc(avgduration))
+
+# ANSWER: pdistrict 162, ddistrict 279
+
 
 # Oof, that's a long trip from the airport.
+
 
 # If you've gotten this far, try the Ex. 2 challenge below.
 
@@ -208,12 +228,9 @@ OD_speeds = trips2 %>%
 
 # To answer this question, create a "pct_trips" column in OD_stats that shows what percentage of all trips were made over each O-D pair.
 # One way to do this is by finding sum(trips$n) and using this scalar value as the denominator in our mutate function.
-sum(OD_stats$n)
-
-### YOUR CODE HERE ###
-#
-#
-### -------------- ###
+sum(OD_stats$n) #441870
+OD_stats %>%
+  mutate(pct_trips = n / 441870)
 
 # A more elegant approach would be to use a window function.
 # When we've used mutate() so far, we have always populated each element of the new column by using a function of only scalars and the elements of that same row from other columns.
@@ -229,10 +246,16 @@ OD_stats %>%
 
 # What O-D pair accounts for the highest percentage of trips and what is the percentage?
 # What is the average trip distance for those trips?
-### YOUR CODE HERE ###
-#
-#
-### -------------- ###
+OD_stats %>%
+  mutate(
+    pct_trips = n/sum(n)
+  ) %>%
+  arrange(desc(pct_trips))
+
+# ANSWER: pdistrict 289, ddistrict 289. Avg distance = 1.037 miles
+
+
+
 
 # Did you get the same pct_trips values as before?
 
@@ -250,9 +273,12 @@ OD_stats %>%
 # HINT: Make sure you look at what groups your data frame has.
 
 
+# EXPLANATION: When using window functions, mutate pays attention to existing groups in the data frame.
+# For this reason, you may want to ungroup() the data before applying the mutate() function.
+
+
 ### -------------- ###
 ### END EXERCISE 2 ###
-
 
 
 ### EXERCISE 3. PUTTING IT ALL TOGETHER ###
@@ -262,10 +288,7 @@ OD_stats %>%
 # Let's merge OD_stats and OD_speeds to get an overall stats table called "allODstats". Keep only rows that exist in both tables.
 # Notice that we are joining on multiple columns.
 # By default, dplyr will join on all columns whose names match exactly.
-### YOUR CODE HERE ###
-#
-#
-### -------------- ###
+allODstats = OD_stats %>% inner_join(OD_speeds)
 
 # Take a look at allODstats to make sure the join worked the way you wanted.
 allODstats
@@ -280,30 +303,28 @@ allODstats
 
 # Now use the cor() function to find the correlation between average distance and average duration.
 # HINT: cor(a,b) returns the correlation between vector a and vector b.
-### YOUR CODE HERE ###
-#
-#
-### -------------- ###
+cor(allODstats$avgdist,allODstats$avgduration)
 
 # Is there a strong positive or negative correlation? Does it match your prediction?
 
+# ANSWER: Strong positive correlation: 0.94
+
+
 # Now check the correlation between avg trip distance and avg speed over each O-D path.
-### YOUR CODE HERE ###
-#
-#
-### -------------- ###
+cor(allODstats$avgdist,allODstats$avgspeed)
 
 # What is the correlation? Is this what you expected?
+
+# ANSWER: Correlation = 0.23, pretty low
 
 
 
 # EX 3.3: A different O-D matrix #
 # Create an O-D matrix with average trip speed populating the cells of the matrix, instead of count.
 # You will only need three columns from allODstats: pdistrict, ddistrict, and avgspeed
-### YOUR CODE HERE ###
-#
-#
-### -------------- ###
+allODstats %>%
+  select(pdistrict,ddistrict,avgspeed) %>%
+  spread(key = ddistrict,value = avgspeed)
 
 # We have the same problem as before when we did this by district. To fix that problem, try the challenge below.
 
@@ -311,11 +332,20 @@ allODstats
 # EX 3 CHALLENGE: A different O-D matrix, borough edition #
 # Create the same O-D matrix as in exercise 3.3, but by borough rather than district.
 
-### YOUR CODE HERE ###
-# If you're struggling with this one, check out solutions.R
-#
-#
-### -------------- ###
+mspeed = trips2 %>%
+  mutate(
+    trip_duration = as.numeric(dropoff_datetime - pickup_datetime) / 60,
+    avgtripspeed = ifelse(trip_duration > 0, trip_distance / (trip_duration / 60), -1),
+    trip_id = row_number()
+  ) %>%
+  select(trip_id,pdistrict,ddistrict,avgtripspeed) %>%
+  gather(p_or_d,district,pdistrict:ddistrict) %>%
+  left_join(areas, by = c('district' = 'id')) %>%
+  select(-district) %>%
+  spread(key = p_or_d, value = borough, fill = "Unknown") %>%
+  group_by(pborough = pdistrict, dborough = ddistrict) %>%
+  summarize(avgspeed = mean(avgtripspeed)) %>%
+  spread(key = dborough, value = avgspeed)
 
 # If you save the matrix as mspeed, you can use the code below to plot a heatmap:
 mspeed = mspeed %>% select(-pborough) %>% data.matrix
