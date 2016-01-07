@@ -1,10 +1,9 @@
 ### LOADING THE DATA ###
 
 # Let's read in the dataset describing NYC taxi trips on May 14, 2013. 
-# Don't forget to start by navigating to the directory where you've saved the CSV file.
+# Don't forget to start by navigating to the directory where you've saved the CSV file, using Session -> Set Working Directory, or setwd("YOUR_PATH_HERE")
 
-# Spell out instructions using Session -> Set Working Directory and navigate to data folder
-setwd("~/Google Drive/orc/iap/data")
+
 
 # We'll set stringsAsFactors to FALSE just to make sure nothing gets converted to a factor variable that we don't want.
 
@@ -15,7 +14,18 @@ trips = read.csv("2013-05-14_neighborhoods.csv",stringsAsFactors=F)
 
 str(trips)
 
+
 # We have 490,347 observations of 21 variables.
+
+# Now that we've examined the variables, there are a few variables we should probably convert to factors
+trips$vendor_id = factor(trips$vendor_id)
+trips$rate_code = factor(trips$rate_code)
+trips$store_and_fwd_flag = factor(trips$store_and_fwd_flag)
+trips$payment_type = factor(trips$payment_type)
+# We'll deal with the datetime variables in one of the exercises.
+
+# Now let's check out str() again to see what changed.
+str(trips)
 
 ### 0. CHAINING AND OTHER PRELIMINARIES ###
 ### ___________________________________ ###
@@ -76,13 +86,21 @@ trips$passenger_count %>% table()
 ## Then plot() the result.
 trips$passenger_count %>% table() %>% plot()
 
+
 # Chaining makes it easy to complete these steps in a legible way without storing intermediate objects. Again, we could make our code even more terse by dropping parentheses: 
 trips$passenger_count %>% table %>% plot
+
+## Side note: We could also use the hist() function
+trips$passenger_count %>% hist()
 
 # Furthermore, if we first looked at the table and then decided we want to plot it, we can just use chaining to tack on the plot() function, rather than having to add it "around" our original expression.
 plot(table(trips$passenger_count))
 
 # Summing up: chaining sometimes requires slightly more typing, but it is much more writable and readable, and helps keep your virtual workspace clean by avoiding storing intermediate objects in memory. It's a powerful tool that we'll use throughout this session. And on that high note, Alex is going to get us started as we wrangle some data!
+
+# Chaining requires a bit more typing, but is more legible and easier on your computer's memory than storing intermediate objects. 
+
+# OK, now let's wrangle some data.
 
 ### 1. EXPLORING AND SUMMARIZING DATA SET ###
 ### _____________________________________ ###
@@ -106,7 +124,8 @@ trips %>%
   group_by(passenger_count) %>%
   summarize(fare_mean = mean(fare_amount))
 
-# Note that this chained set of commands creates a new data frame. We could choose to assign this object to a name.
+# Note that this chained set of commands creates a new data frame that gets printed to the console, but doesn't get stored.
+# We could choose to assign this object to a name.
 mean_fare_by_passenger_count = trips %>%
   group_by(passenger_count) %>%
   summarize(fare_mean = mean(fare_amount))
@@ -177,9 +196,9 @@ trips %>%
 ###-------------
 
 # Ok, let's filter trips before computing our summary stats.
-# We'll include only trips where passenger_count is not zero.
+# We'll include only trips where passenger_count is greater than zero.
 trips %>%
-	filter(passenger_count != 0)
+	filter(passenger_count > 0)
 
 # Good - our new data frame has 3 fewer rows.
 # Let's double-check it did what we wanted.
@@ -267,11 +286,11 @@ trips_summary %>%
 # Ok, we've learned a bunch of dplyr verbs that helped us compute aggregate statistics (group_by, summarize), filter our data (filter), and sort our data (arrange).
 
 # Let's practice!
-# Complete Exercise 1 working on your own or with the person sitting next to you.
+# Open up exercises.R and work your way through Exercise 1. Feel free to discuss with your neighbors as you go along.
 
-# ______
 
-# Now let's move on to data wrangling for some more formal data analysis.
+
+
 
 
 ### 2. PREPPING DATA FOR ANALYSIS ###
@@ -339,8 +358,14 @@ linregdata = trips %>%
 mod = lm(tip_percent ~ ., data=linregdata)
 summary(mod)
 
+
 # 3. ORIGIN-DESTINATION MATRIX --------------------------------------------
 # One good question for a data set like this is: what 'trip patterns' tend to be most common? One answer to this question is an origin-destination (OD) matrix, in which the ij-th entry counts the number of trips from origin i to destination j. Let's explore how to create an OD matrix using functions from tidyr, a great companion to dplyr for reshaping data sets. 
+
+### 3. ORIGIN-DESTINATION MATRIX ###
+### ----------------------------- ###
+
+# One good question for a data set like this is: what 'trip patterns' tend to be most common? One answer to this question is an origin-destination (O-D) matrix, in which the ij-th entry counts the number of trips from origin i to destination j. Let's explore how to create an O-D matrix using functions from # tidyr, a great companion to dplyr for reshaping data sets. 
 
 # First, we'll create an OD matrix on the district-number level. We'll use the pdistrict and ddistrict columns. Let's take a look: 
 
@@ -376,6 +401,7 @@ trips %>%
 # Right--we want to generate a separate column for each value of ddistrict, and we want the counts to follow along. This is a version of 'wide format'. The tidyr package supplies two verbs, spread() and gather(), for converting between wide and long format. Since we need to make our data wider, let's talk about spread(). 
 
 # -------
+
 
 library(tidyr)
 trips %>% 
@@ -431,7 +457,7 @@ trips %>%
 # - "Take the column NAMES of pdistrict and ddistrict and gather them into the new p_or_d column"
 # - "Take the corresponding column VALUES of pdistrict and ddistrict" and gather them into the new district column"
 
-# It's a little easier to see what's happened if we sort the data on trip_id: 
+# So, what does our new data frame look like? We can see what's going on a bit better if we sort the data on trip_id:
 
 trips %>% 
 	select(pdistrict, ddistrict) %>%
@@ -461,10 +487,8 @@ trips %>%
 	left_join(areas, by = c('district' = 'id')) %>%
 	select(-district)
 
-# Now we're ready to spread(). We want to use the values of p_or_d to code two
-# new columns, with values that come from borough. Since we have the trip_id 
-# column, spread() knows to keep those entries together -- that's why we needed
-# it in the first place. 
+# Now we're ready to spread(). We want to use the values of p_or_d to code two new columns, with values that come from borough.
+# Since we have the trip_id column, spread() knows to keep those entries together -- that's why we needed it in the first place. 
 
 trips %>% 
 	select(pdistrict, ddistrict) %>%
@@ -503,8 +527,9 @@ trips %>%
 	rename(pborough = pdistrict, dborough = ddistrict) %>%
 	count(pborough, dborough)
 
-# Finally, we can get this into 'matrix form' by spreading again. We want
-# dborough to be the columns, and the values to be n. 
+# Finally, we can get this into 'matrix form' by spreading again. We wantdborough to be the columns, and the values to be n. 
+
+# Note that we still have some NAs. We could filter them out using familiar methods, or we could use the 'fill' parameter of spread to write 'Unknown' there instead: 
 
 trips %>% 
 	select(pdistrict, ddistrict) %>%
@@ -518,6 +543,7 @@ trips %>%
 	spread(key = dborough, value = n, fill = 0)
 
 # Wait, we got an error! What happened? 
+
 # Right, we have some NAs in here, and R isn't letting us use NA for a column name. Just like last time, the NAs are coming from spread() (the first call), and just like last time, we can use the fill parameter to do something else with them. I am going to call them 'Unknown':
 
 trips %>% 

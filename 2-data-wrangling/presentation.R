@@ -2,7 +2,9 @@
 
 # 0. Prelims and Chaining -------------------------------------------------
 
-## Let's load the data and check it out a bit. 
+## Let's load the data and check it out a bit.
+
+## Describe variables and convert to factors.
 
 ## install and load in dplyr
 
@@ -16,6 +18,8 @@
 
 ## One-line histogram of passenger count
 
+## Could also accomplish with hist() function
+
 # 1. Exploring and Summarizing a Data Set ---------------------------------
 
 ## Quick summary statistics using summary()
@@ -26,7 +30,7 @@
 
 ## Assign the result to a new df
 
-## Groupby() without summarize()
+## groupby() without summarize()
 
 ## Assign the result to a new df
 
@@ -40,13 +44,13 @@
 
 ## Easily add a column for counts using n()
 
-## Filter out observations with passenger_count = 0
+## Filter out observations with passenger_count == 0
 
 ## Sort by fare_mean
 
-## Sort in descending order, or by multiple criteria
+## Sort by fare_median and descending n
 
-## Go to exercises.R and complete exercises 1.0-1.2
+## Go to exercises.R and complete Exercise 1
 
 # 2. Prepping Data for Analysis -------------------------------------------
 
@@ -60,16 +64,18 @@
 
 ## Check out the results
 
+## Remove tip_amount
+
 ## Save as a new df
 
 ## Run linear regression and examine results
 
+## Go to exercises.R and complete Exercise 2
+
 # 3. Origin-Destination Matrix --------------------------------------------
 ## An OD matrix has the ij-th entry as the number of trips from origin i to destination j. Our strategy is to count up by the relevant groups and then reshape the data using tidyr
 
-## Let's check out the structure of trips to see which columns we should use: 
-
-## look at the pdistrict and ddistrict columns. Each row is the id of the pickup and dropoff location for an individual trip. 
+## look at the pdistrict and ddistrict columns with select. Each row is the id of the pickup and dropoff location for an individual trip. 
 
 ## Count rows with an NA in either column: 
 
