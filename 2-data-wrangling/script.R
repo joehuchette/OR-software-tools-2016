@@ -98,8 +98,6 @@ plot(table(trips$passenger_count))
 
 # Summing up: chaining sometimes requires slightly more typing, but it is much more writable and readable, and helps keep your virtual workspace clean by avoiding storing intermediate objects in memory. It's a powerful tool that we'll use throughout this session. And on that high note, Alex is going to get us started as we wrangle some data!
 
-# Chaining requires a bit more typing, but is more legible and easier on your computer's memory than storing intermediate objects. 
-
 # OK, now let's wrangle some data.
 
 ### 1. EXPLORING AND SUMMARIZING DATA SET ###
@@ -206,7 +204,7 @@ summary(trips$passenger_count)
 
 # Now let's calculate our summary table for this subset of the data. We'll just tack on the same commands we used before.
 trips %>%
-  filter(passenger_count != 0) %>%
+  filter(passenger_count > 0) %>%
   group_by(passenger_count) %>%
   summarize(
     fare_mean = mean(fare_amount),
@@ -216,7 +214,7 @@ trips %>%
 
 # In this case, because we are only filtering based on one condition, we could have also used subset.
 trips %>%
-  subset(passenger_count != 0) %>%
+  subset(passenger_count > 0) %>%
   group_by(passenger_count) %>%
   summarize(
     fare_mean = mean(fare_amount),
@@ -234,7 +232,7 @@ trips %>%
     fare_median = median(fare_amount),
     n = n()
   ) %>%
-  filter(passenger_count != 0)
+  filter(passenger_count > 0)
 
 
 # Now that we've got some summary stats, we might have some other questions as we continue our data exploratin.
@@ -249,7 +247,7 @@ trips %>%
 # We'll just add an arrange clause at the end of the chain.
 
 trips %>%
-  filter(passenger_count != 0) %>%
+  filter(passenger_count > 0) %>%
   group_by(passenger_count) %>%
   summarize(
     fare_mean = mean(fare_amount),
@@ -263,7 +261,7 @@ trips %>%
 
 # It might be convenient at this point to save our summary stats as an object since we are just planning to sort the data frame by various columns.
 trips_summary = trips %>%
-  filter(passenger_count != 0) %>%
+  filter(passenger_count > 0) %>%
   group_by(passenger_count) %>%
   summarize(
     fare_mean = mean(fare_amount),
