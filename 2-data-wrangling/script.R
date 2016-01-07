@@ -12,11 +12,12 @@ trips = read.csv("2013-05-14_neighborhoods.csv",stringsAsFactors=F)
 str(trips)
 # We have 490,347 observations of 21 variables.
 
-# Now that we've examined the variables, there are a few variables we should convert to factors
+# Now that we've examined the variables, there are a few variables we should probably convert to factors
 trips$vendor_id = factor(trips$vendor_id)
 trips$rate_code = factor(trips$rate_code)
 trips$store_and_fwd_flag = factor(trips$store_and_fwd_flag)
 trips$payment_type = factor(trips$payment_type)
+# We'll deal with the datetime variables in one of the exercises.
 
 # Now let's check out str() again to see what changed.
 str(trips)
@@ -75,6 +76,9 @@ trips$passenger_count %>% table()
 ## Then plot() the result.
 trips$passenger_count %>% table() %>% plot()
 
+## Side note: We could also use the hist() function
+trips$passenger_count %>% hist()
+
 # Chaining makes it easy to complete these steps in a legible way without storing intermediate objects.
 
 # Furthermore, if we first looked at the table and then decided we want to plot it, we can just use chaining to tack on the plot() function, rather than having to add it "around" our original expression.
@@ -83,7 +87,7 @@ plot(table(trips$passenger_count))
 
 # Chaining requires a bit more typing, but is more legible and easier on your computer's memory than storing intermediate objects. 
 
-# OK, now let's wrange some data.
+# OK, now let's wrangle some data.
 
 
 ### 1. EXPLORING AND SUMMARIZING DATA SET ###
@@ -108,7 +112,8 @@ trips %>%
   group_by(passenger_count) %>%
   summarize(fare_mean = mean(fare_amount))
 
-# Note that this chained set of commands creates a new data frame. We could choose to assign this object to a name.
+# Note that this chained set of commands creates a new data frame that gets printed to the console, but doesn't get stored.
+# We could choose to assign this object to a name.
 mean_fare_by_passenger_count = trips %>%
   group_by(passenger_count) %>%
   summarize(fare_mean = mean(fare_amount))
@@ -179,9 +184,9 @@ trips %>%
 ###-------------
 
 # Ok, let's filter trips before computing our summary stats.
-# We'll include only trips where passenger_count is not zero.
+# We'll include only trips where passenger_count is greater than zero.
 trips %>%
-	filter(passenger_count != 0)
+	filter(passenger_count > 0)
 
 # Good - our new data frame has 3 fewer rows.
 # Let's double-check it did what we wanted.
@@ -269,11 +274,11 @@ trips_summary %>%
 # Ok, we've learned a bunch of dplyr verbs that helped us compute aggregate statistics (group_by, summarize), filter our data (filter), and sort our data (arrange).
 
 # Let's practice!
-# Complete Exercise 1 working on your own or with the person sitting next to you.
+# Open up exercises.R and work your way through Exercise 1. Feel free to discuss with your neighbors as you go along.
 
-# ______
 
-# Now let's move on to data wrangling for some more formal data analysis.
+
+
 
 
 ### 2. PREPPING DATA FOR ANALYSIS ###
@@ -347,15 +352,15 @@ summary(mod)
 ### ----------------------------- ###
 
 # One good question for a data set like this is: what 'trip patterns' tend to 
-# be most common? One answer to this question is an origin-destination (OD) 
+# be most common? One answer to this question is an origin-destination (O-D) 
 # matrix, in which the ij-th entry counts the number of trips from origin i to 
-# destination j. Let's explore how to create an OD matrix using functions from 
+# destination j. Let's explore how to create an O-D matrix using functions from 
 # tidyr, a great companion to dplyr for reshaping data sets. 
 
 # First, we'll create an OD matrix on the district-number level. We'll use the 
 # pdistrict and ddistrict columns. Let's take a look: 
 
-trips %>% select(pdistrict, ddistrict) %>% glimpse
+trips %>% select(pdistrict, ddistrict)
 
 # Looks like we've got some NAs; how many? We can find out using our old friends
 # select() and filter(). Note the use of the 'or' operator | in the filter 
@@ -388,15 +393,13 @@ trips %>%
 		   !is.na(ddistrict)) %>%
 	count(pdistrict, ddistrict)
 
-# Our data is in 'long' or 'tidy' format, where each possible value of pdistrict
-# and ddistrict has its own row. This is inefficient, but great in many 
-# applications because there are few columns, filtering is easy, etc. Data in 
-# this format is not very efficient, but it is pretty easy to work with because 
-# there are only 3 columns, easy filtering, etc. However, we want 'wide' format,
-# in which each value of ddistrict will have its own column. To do this, we'll
-# use the tidyr function spread(). In this basic usage, we just tell spread() 
-# which column to 'spread out' ddistrict and use n for the values in the resulting
-# columns.  We'll go into more detail on spread() below. 
+# Our data is in 'long' or 'tidy' format, where each possible value of pdistrict and ddistrict has its own row.
+# Data in this format is not very efficient, but it is pretty easy to work with because there are only 3 columns, easy filtering, etc.
+# However, we want 'wide' format, in which each value of ddistrict will have its own column.
+# To do this, we'll use the tidyr function spread().
+# In this basic usage, we just tell spread() which column to 'spread out' as keys/labels/column names and which column to use as values to populate the resulting columns.
+# We'll use ddistrict as our key and we'll use n for the values in the resulting columns.
+# We'll go into more detail on spread() below. 
 
 library(tidyr)
 trips %>% 
@@ -441,10 +444,9 @@ trips %>%
 	select(pdistrict, ddistrict)
 
 # Here we could filter out the NAs, but we're going to instead classify them as 
-# 'Unknown' and incorporate them into our final output.Continuing, we need to 
-# add a unique id column for each trip, you'll see why in a moment. An easy way 
-# to make a unique ID is the row_number() function, which does exactly what you 
-# think it does (on ungrouped data). 
+# 'Unknown' and incorporate them into our final output.
+# Continuing, we need to add a unique id column for each trip - you'll see why in a moment.
+# An easy way to make a unique ID is the row_number() function, which does exactly what you think it does (on ungrouped data). 
 
 trips %>% 
 	select(pdistrict, ddistrict) %>%
@@ -457,23 +459,19 @@ trips %>%
 trips %>% 
 	select(pdistrict, ddistrict) %>%
 	mutate(trip_id = row_number()) %>%
-	gather(p_or_d, district, -trip_id)
+	gather(p_or_d, district, pdistrict, ddistrict)
 
-# How to read the gather call: convert all columns except trip_id into label 
-# or 'key' columns. Make a new column called 'p_or_d' to code the labels, 
-# and call the column of values 'district'.
+# How to read the gather call: convert the column names of pdistrict and ddistrict into labels listed in a new 'key' column called 'p_or_d'. Put the values in pdistrict and ddistrct in a new 'values' column called 'district'.
 
-# So, what does our new data frame look like? We can see what's going on a bit 
-# better if we sort the data on trip_id:
+# So, what does our new data frame look like? We can see what's going on a bitbetter if we sort the data on trip_id:
 
 trips %>% 
 	select(pdistrict, ddistrict) %>%
 	mutate(trip_id = row_number()) %>%
-	gather(p_or_d, district, -trip_id) %>%
-	arrange(trip_id)
+  gather(p_or_d, district, pdistrict, ddistrict) %>%
+  arrange(trip_id)
 
-# Each trip has a row corresponding to pickup and another corresponding to 
-# dropoff. 
+# Each trip has a row corresponding to pickup and another corresponding to dropoff. 
 
 # Now we are ready to join. First, let's see what happens if we use a left join.
 # We need to tell dplyr that the 'district' column of trips is supposed to match
@@ -482,35 +480,31 @@ trips %>%
 trips %>% 
 	select(pdistrict, ddistrict) %>%
 	mutate(trip_id = row_number()) %>%
-	gather(p_or_d, district, -trip_id) %>%
-	left_join(areas, by = c('district' = 'id'))
+  gather(p_or_d, district, pdistrict, ddistrict) %>%
+  left_join(areas, by = c('district' = 'id'))
 
 # Looks like we got a bunch of NAs, which makes sense, since we had a bunch of
 # NAs in the district column. That's ok for now. If we wanted to drop all 
 # entries with NAs in either trips or areas, we could use an inner_join instead. 
 
-# So we've done our join, and we want to get our data back into a more familiar
-# format. To do this, let's use the spread() function, which is the inverse of 
-# gather(). First, let's drop the district column, since we don't need it 
-# anymore: 
+# So we've done our join, and we want to get our data back into a more familiar format.
+# To do this, let's use the spread() function, which is the inverse of gather(). First, let's drop the district column, since we don't need it anymore: 
 
 trips %>% 
 	select(pdistrict, ddistrict) %>%
 	mutate(trip_id = row_number()) %>%
-	gather(p_or_d, district, -trip_id) %>%
-	left_join(areas, by = c('district' = 'id')) %>%
+  gather(p_or_d, district, pdistrict, ddistrict) %>%
+  left_join(areas, by = c('district' = 'id')) %>%
 	select(-district)
 
-# Now we're ready to spread(). We want to use the values of p_or_d to code two
-# new columns, with values that come from borough. Since we have the trip_id 
-# column, spread() knows to keep those entries together -- that's why we needed
-# it in the first place. 
+# Now we're ready to spread(). We want to use the values of p_or_d to code two new columns, with values that come from borough.
+# Since we have the trip_id column, spread() knows to keep those entries together -- that's why we needed it in the first place. 
 
 trips %>% 
 	select(pdistrict, ddistrict) %>%
 	mutate(trip_id = row_number()) %>%
-	gather(p_or_d, district, -trip_id) %>%
-	left_join(areas, by = c('district' = 'id')) %>%
+  gather(p_or_d, district, pdistrict, ddistrict) %>%
+  left_join(areas, by = c('district' = 'id')) %>%
 	select(-district) %>%
 	spread(key = p_or_d, value = borough)
 
@@ -521,8 +515,8 @@ trips %>%
 trips %>% 
 	select(pdistrict, ddistrict) %>%
 	mutate(trip_id = row_number()) %>%
-	gather(p_or_d, district, -trip_id) %>%
-	left_join(areas, by = c('district' = 'id')) %>%
+  gather(p_or_d, district, pdistrict, ddistrict) %>%
+  left_join(areas, by = c('district' = 'id')) %>%
 	select(-district) %>%
 	spread(key = p_or_d, value = borough) %>%
 	rename(pborough = pdistrict, dborough = ddistrict)
@@ -531,22 +525,21 @@ trips %>%
 trips %>% 
 	select(pdistrict, ddistrict) %>%
 	mutate(trip_id = row_number()) %>%
-	gather(p_or_d, district, -trip_id) %>%
-	left_join(areas, by = c('district' = 'id')) %>%
+  gather(p_or_d, district, pdistrict, ddistrict) %>%
+  left_join(areas, by = c('district' = 'id')) %>%
 	select(-district) %>%
 	spread(key = p_or_d, value = borough) %>%
 	rename(pborough = pdistrict, dborough = ddistrict) %>%
 	count(pborough, dborough)
 
 # Note that we still have some NAs. We could filter them out using familiar 
-# methods, or we could use the 'fill' parameter of spread to write 'Unknown' 
-# there instead: 
+# methods, or we could use the 'fill' parameter of spread to write 'Unknown' there instead: 
 
 trips %>% 
 	select(pdistrict, ddistrict) %>%
 	mutate(trip_id = row_number()) %>%
-	gather(p_or_d, district, -trip_id) %>%
-	left_join(areas, by = c('district' = 'id')) %>%
+  gather(p_or_d, district, pdistrict, ddistrict) %>%
+  left_join(areas, by = c('district' = 'id')) %>%
 	select(-district) %>%
 	spread(key = p_or_d, value = borough, fill = 'Unknown') %>%
 	rename(pborough = pdistrict, dborough = ddistrict) %>%
@@ -558,8 +551,8 @@ trips %>%
 trips %>% 
 	select(pdistrict, ddistrict) %>%
 	mutate(trip_id = row_number()) %>%
-	gather(p_or_d, district, -trip_id) %>%
-	left_join(areas, by = c('district' = 'id')) %>%
+  gather(p_or_d, district, pdistrict, ddistrict) %>%
+  left_join(areas, by = c('district' = 'id')) %>%
 	select(-district) %>%
 	spread(key = p_or_d, value = borough, fill = 'Unknown') %>%
 	rename(pborough = pdistrict, dborough = ddistrict) %>%
@@ -572,8 +565,8 @@ trips %>%
 m = trips %>% 
 	select(pdistrict, ddistrict) %>%
 	mutate(trip_id = row_number()) %>%
-	gather(p_or_d, district, -trip_id) %>%
-	left_join(areas, by = c('district' = 'id')) %>%
+  gather(p_or_d, district, pdistrict, ddistrict) %>%
+  left_join(areas, by = c('district' = 'id')) %>%
 	select(-district) %>%
 	spread(key = p_or_d, value = borough, fill = 'Unknown') %>%
 	rename(pborough = pdistrict, dborough = ddistrict) %>%
