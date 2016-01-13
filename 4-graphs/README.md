@@ -1,5 +1,5 @@
 # Networks in R
-This course covers the excellent `igraph` package, used to create, analyse and visualize networks in R. We will apply these tools to analyse the taxi rides in New York city, and to study Manhattan's routing network.
+This course covers the excellent `igraph` package that allows to create, analyse and visualize networks in R. We will use these tools to analyse the taxi rides in New York city and to study Manhattan's routing network.
 
 ## Pre-assignment
 ### Git update
@@ -26,7 +26,7 @@ set.seed(144)
 max(betweenness(erdos.renyi.game(100, 0.5)))
 ```
 
-Please submit the output of this R input (one line) in a .txt file on stellar.
+Please submit the output of this R input (one line) in a .txt file on Stellar.
 
 ## Questions?
 Please email Sébastien Martin (semartin@mit.edu).
