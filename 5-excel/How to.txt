@@ -1,0 +1,52 @@
+Windows users
+
+Start
+ Conditional Formatting : Home (2nd ribbon) -> Conditional Formatting
+
+User Function
+ Show VBA        : Alt + F11
+ Show VBA        : Developer -> Visual Basic
+
+Solver
+ Goal seek       : Tools -> goal Seek
+ Solver (install): Home (Microsoft office button) -> Excel Options -> Add-Ins -> Go -> Select Solver Add-In -> Ok
+ Solver          : Data -> Solver
+
+Statistics
+ Analysis ToolPack (install) : Home (Microsoft office button) -> Excel Options -> Add-Ins -> Go -> Select Analysis ToolPack Add-In -> Ok
+ Analysis ToolPack           : Data -> Data Analysis
+
+FormulasReferences
+ Text to Columns : Data -> Text to Columns
+ Sort            : Data (1st or 2nd menu ribbon) -> Sort -> Custom Sort
+ Filter          : Data -> Filter
+ Validation      : Data -> Validation
+ Protect Sheet   : Review -> Sheet
+
+
+
+
+Mac users
+
+Start
+ Conditional Formatting : Home (2nd ribbon) -> Conditional Formatting
+
+User Function
+ Show VBA        : Fn + Option + F11
+ Show VBA        : Excel (menu) -> Preferences... -> Ribbon -> (Check on) Developer -> Ok
+
+Solver
+ Goal seek       : Tools -> goal Seek
+ Solver (install): Tools -> add-ins
+ Solver          : Data -> Solver
+
+Statistics
+ Analysis toolpack (install) : http://www.analystsoft.com/en/products/statplusmacle/ -> Free Download -> Install it (instructions in the web page) -> Run it (https://www.youtube.com/watch?v=NQHbYu8qT2k)
+ Analysis toolpack           : Open StatPlus -> Statistics (menu) -> ... (regression for example) 
+
+FormulasReferences
+ Text to Columns : Data -> Text to Columns
+ Sort            : Data (1st or 2nd menu ribbon) -> Sort -> Custom Sort
+ Filter          : Data -> Filter
+ Validation      : Data -> Validation
+ Protect Sheet   : Review -> Sheet
