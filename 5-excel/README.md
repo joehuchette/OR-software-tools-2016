@@ -1,7 +1,7 @@
 # Pre-Assignment <br /> <br />
 
 ## Files
-* Every file has a solution file included. For example, the file **KeyMatrices.xls** is the solution of the file **Matrices.xls**.
+* Every file has a solution file included. For example, the file **KeyMatrices.xlsx** is the solution of the file **Matrices.xlsx**.
 * The file **Shortcuts.pdf** shows some of the most important shortcuts we will use during the session.
 * The file **How to.txt** shows how to access some of the things we will do in the session.
 
