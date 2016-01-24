@@ -49,6 +49,7 @@ We will use (some of) the following packages:
 - Ipopt
 - Distributions
 - Gadfly
+- PyPlot
 - Interact
 - Gurobi
 
