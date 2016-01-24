@@ -52,6 +52,7 @@ We will use (some of) the following packages:
 - PyPlot
 - Interact
 - Gurobi
+- ECOS
 
 Install each one by running ``Pkg.add("xxx")`` where ``xxx`` is the package name
 from a Julia prompt or notebook.
