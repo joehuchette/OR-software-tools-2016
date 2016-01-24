@@ -1,7 +1,8 @@
 # Nonlinear optimization
 
 This class will cover computational aspects of **convex and nonlinear optimization**,
-drawing from motivating examples in statistical regression and machine learning models.
+drawing from motivating examples in statistical regression and machine learning models. Please follow the installation instructions below before the class. The preassignment
+at the end is a check that everything is installed correctly.
 
 ## Install Julia
 
